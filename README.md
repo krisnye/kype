@@ -1,0 +1,2 @@
+# kype
+Type Inference Library
