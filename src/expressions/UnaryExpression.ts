@@ -12,7 +12,7 @@ export class UnaryExpression extends Expression {
         this.argument = argument;
     }
 
-    toString() {
+    toStringInternal() {
         return `${this.operator}${this.argument}`;
     }
 

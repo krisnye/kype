@@ -1,7 +1,7 @@
 
 import { BinaryExpression } from "../expressions/BinaryExpression";
 import { BinaryOperator, ComparisonOperator, LogicalOperator, MathOperator } from "../expressions/BinaryOperator";
-import { Expression } from "../expressions/Expression"
+import type { Expression } from "../expressions/Expression"
 import { UnaryExpression } from "../expressions/UnaryExpression";
 import { memoize } from "./memoize";
 

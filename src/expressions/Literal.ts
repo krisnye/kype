@@ -11,7 +11,7 @@ export class Literal extends Expression {
         this.value = value;
     }
 
-    toString() {
+    toStringInternal() {
         return `${this.value}`;
     }
 

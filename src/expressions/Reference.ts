@@ -11,7 +11,7 @@ export class Reference extends Expression {
         this.name = name;
     }
 
-    toString() {
+    toStringInternal() {
         return `${this.name}`;
     }
 

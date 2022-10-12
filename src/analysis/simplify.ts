@@ -52,8 +52,11 @@ export const simplify = memoize(function(e: Expression): Expression {
             }
         }
         else if (e.operator === "&&") {
-            if (isConsequent(right, left) === true) {
+            if (isConsequent(right, left)) {
                 return right;
+            }
+            if (isConsequent(left, right)) {
+                return left;
             }
             //  we only have to filter the right because we know after normalization
             //  that the right side will have the || (if it's on both... then we can't determine anyways)

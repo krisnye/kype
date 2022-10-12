@@ -13,7 +13,7 @@ export class CallExpresssion extends Expression {
         this.arguments = args;
     }
 
-    toString() {
+    toStringInternal() {
         return `${this.callee}(${this.arguments.join(`,`)})`;
     }
 

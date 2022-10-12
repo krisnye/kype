@@ -15,7 +15,7 @@ export class BinaryExpression extends Expression {
         this.right = right;
     }
 
-    toString() {
+    toStringInternal() {
         return `(${this.left} ${this.operator} ${this.right})`;
     }
 
