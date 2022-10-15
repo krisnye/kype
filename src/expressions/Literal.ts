@@ -11,6 +11,10 @@ export class Literal extends Expression {
         this.value = value;
     }
 
+    public compareSortOrderSameType(b: Literal): number {
+        return this.value - b.value;
+    }
+
     toStringInternal() {
         return `${this.value}`;
     }

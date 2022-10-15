@@ -4,9 +4,10 @@ import { UnaryExpression } from "../expressions/UnaryExpression"
 import { combineExpressions } from "../utility/combineExpressions"
 import { equals } from "../utility/equals"
 import { memoize } from "../utility/memoize"
-import { normalize } from "../utility/normalize"
+import { normalize } from "./normalize"
 import splitExpressions from "../utility/splitExpressions"
 import { isConsequent } from "./isConsequent"
+import { joinExpressions } from "../utility/joinExpressions"
 
 function find<T>(items: Iterable<T>, predicate: (value: T) => boolean): T | null {
     for (let item of items) {
@@ -20,6 +21,21 @@ function find<T>(items: Iterable<T>, predicate: (value: T) => boolean): T | null
 // A && B || A => A
 export const simplify = memoize(function(e: Expression): Expression {
     e = normalize(e);
+
+    let terms = e.split("&&");
+    for (let i = terms.length - 1; i > 0; i--) {
+        let left = terms[i - 1];
+        let right = terms[i];
+        if (isConsequent(left, right)) {
+            //  remove the right
+            terms.splice(i, 1);
+        }
+        else if (isConsequent(right, left)) {
+            //  remove the left;
+            terms.splice(i - 1, 1);
+        }
+    }
+    e = joinExpressions(terms, "&&");
 
     if (e instanceof BinaryExpression) {
         let left = simplify(e.left);
@@ -52,15 +68,9 @@ export const simplify = memoize(function(e: Expression): Expression {
             }
         }
         else if (e.operator === "&&") {
-            if (isConsequent(right, left)) {
-                return right;
-            }
-            if (isConsequent(left, right)) {
-                return left;
-            }
             //  we only have to filter the right because we know after normalization
             //  that the right side will have the || (if it's on both... then we can't determine anyways)
-            let filteredRight = combineExpressions(right.split("||").filter(term => isConsequent(left, term) == null), "||");
+            let filteredRight = combineExpressions(right.split("||").filter(term => isConsequent(left, term) === null), "||");
             if (!filteredRight) {
                 return left;
             }

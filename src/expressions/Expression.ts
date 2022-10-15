@@ -8,6 +8,14 @@ export abstract class Expression {
 
     public abstract readonly sortOrder: number;
     protected abstract toStringInternal(): string;
+    public compareSortOrderSameType(b: any): number {
+        return this.toString().localeCompare(b.toString());
+    }
+
+    public compare(b: Expression) {
+        return (this.sortOrder - b.sortOrder)
+            || this.compareSortOrderSameType(b)
+    }
 
     split(operator: string) {
         return [...splitExpressions(this, operator)];

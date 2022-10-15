@@ -3,7 +3,7 @@ import { Expression } from "../expressions/Expression";
 import { Reference } from "../expressions/Reference";
 import { equals } from "../utility/equals";
 import { joinExpressions } from "../utility/joinExpressions";
-import { normalize } from "../utility/normalize";
+import { normalize } from "./normalize";
 
 export function toTypeExpression(allExpressions: Expression, subExpressionToType: Expression): Expression | undefined {
     const thisExpression = new Reference("this");

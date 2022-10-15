@@ -23,3 +23,25 @@ export enum ComparisonOperator {
 }
 
 export type BinaryOperator = LogicalOperator | MathOperator | ComparisonOperator;
+
+const operatorSortOrder = Object.fromEntries([
+    "&&",
+    "||",
+    "+",
+    "-",
+    "*",
+    "/",
+    "%",
+    "**",
+    "==",
+    "!=",
+    ">",
+    ">=",
+    "<",
+    "<=",
+].map((value, index) => [value, index]));
+
+export function compareBinaryOperator(a: string, b: string) {
+    return (operatorSortOrder[a] ?? 0) - (operatorSortOrder[b] ?? 0)
+        || a.localeCompare(b);
+}

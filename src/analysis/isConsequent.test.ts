@@ -1,14 +1,7 @@
 import { strict as assert } from "assert";
-import { BinaryExpression } from "../expressions/BinaryExpression";
-import { CallExpresssion } from "../expressions/CallExpression";
 import { Expression } from "../expressions/Expression";
-import { Literal } from "../expressions/Literal";
-import { Reference } from "../expressions/Reference";
-import { negate } from "../utility/negate";
-import { normalize } from "../utility/normalize";
-import { and, b, c, e, not, or } from "../utility/testUtils";
+import { b, c } from "../utility/testUtils";
 import { isConsequent } from "./isConsequent";
-import { simplify } from "./simplify";
 
 
 function testConsequent(a: Expression, b: Expression, ab_expected: true | false | null, ba_expected: true | false | null) {
@@ -71,38 +64,3 @@ testConsequent(
     true,
     null
 );
-
-// simplify Expressions test
-
-function testSimplify(input: Expression, expected: Expression) {
-    let actual = simplify(input);
-    let as = actual.toString();
-    let es = expected.toString();
-    assert(as === es, `simplify(${input}), expected: ${es}, actual: ${as}`);
-}
-
-const A = e("A");
-const B = e("B");
-const C = e("C");
-const D = e("D");
-const E = e("E");
-
-testSimplify(or(and(A, B), B), B);
-testSimplify(or(and(A, A), A), A);
-testSimplify(or(B, and(A, B)), B);
-testSimplify(or(A, and(A, B)), A);
-
-testSimplify(or(or(A, B), B), or(A, B));
-testSimplify(or(A, or(B, A)), or(A, B));
-
-testSimplify(and(or(A, B), A), A);
-testSimplify(and(A, or(A, B)), A);
-
-testSimplify(and(or(A, B), B), B);
-
-testSimplify(and(or(A, B), not(A)), and(not(A), B));
-testSimplify(and(or(or(A, B), C), not(B)), and(not(B), or(A, C)));
-testSimplify(and(or(A, or(B, C)), not(B)), and(not(B), or(A, C)));
-
-// test simplify 
-testSimplify(b(10, "==", A), b(A, "==", 10));

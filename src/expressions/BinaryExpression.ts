@@ -1,4 +1,5 @@
 
+import { compareBinaryOperator } from "./BinaryOperator";
 import { Expression } from "./Expression";
 
 export class BinaryExpression extends Expression {
@@ -13,6 +14,12 @@ export class BinaryExpression extends Expression {
         this.left = left;
         this.operator = operator;
         this.right = right;
+    }
+
+    public compareSortOrderSameType(b: BinaryExpression): number {
+        return this.left.compare(b.left)
+            || compareBinaryOperator(this.operator, b.operator)
+            || this.right.compare(b.right);
     }
 
     toStringInternal() {

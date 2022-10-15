@@ -12,6 +12,11 @@ export class UnaryExpression extends Expression {
         this.argument = argument;
     }
 
+    public compareSortOrderSameType(b: UnaryExpression): number {
+        return this.operator.localeCompare(b.operator)
+            || this.argument.compare(b.argument);
+    }
+
     toStringInternal() {
         return `${this.operator}${this.argument}`;
     }
