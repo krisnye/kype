@@ -2,8 +2,6 @@
 export enum LogicalOperator {
     and = "&&",
     or = "||",
-    is = "is",
-    isnt = "isnt",
 }
 
 export enum MathOperator {

@@ -3,13 +3,14 @@ import { BinaryExpression } from "../expressions/BinaryExpression";
 import { BinaryOperator, ComparisonOperator, LogicalOperator, MathOperator } from "../expressions/BinaryOperator";
 import type { Expression } from "../expressions/Expression"
 import { UnaryExpression } from "../expressions/UnaryExpression";
+import { joinExpressions } from "./joinExpressions";
 import { memoize } from "./memoize";
 
 const reflectOperators: { [operator: string]: BinaryOperator } = {
-    [ComparisonOperator.greaterThan]: ComparisonOperator.lessThanOrEqual,
-    [ComparisonOperator.lessThan]: ComparisonOperator.greaterThanOrEqual,
-    [ComparisonOperator.greaterThanOrEqual]: ComparisonOperator.lessThan,
-    [ComparisonOperator.lessThanOrEqual]: ComparisonOperator.greaterThan,
+    [ComparisonOperator.greaterThan]: ComparisonOperator.lessThan,
+    [ComparisonOperator.lessThan]: ComparisonOperator.greaterThan,
+    [ComparisonOperator.greaterThanOrEqual]: ComparisonOperator.lessThanOrEqual,
+    [ComparisonOperator.lessThanOrEqual]: ComparisonOperator.greaterThanOrEqual,
     [ComparisonOperator.equality]: ComparisonOperator.equality,
     [ComparisonOperator.inequality]: ComparisonOperator.inequality,
     [MathOperator.addition]: MathOperator.addition,
@@ -19,15 +20,13 @@ const reflectOperators: { [operator: string]: BinaryOperator } = {
 }
 
 const reassociateLeft: { [operator: string]: boolean } = {
-    "|": true,
-    "&": true,
-    "||": true,
-    "&&": true,
-    "+": true,
-    "*": true,
+    [LogicalOperator.or]: true,
+    [LogicalOperator.and]: true,
+    [MathOperator.addition]: true,
+    [MathOperator.multiplication]: true,
 }
 
-function shouldSwapOrder(left: Expression, right: Expression) {
+function compareSortOrder(left: Expression, right: Expression) {
     let compare = left.sortOrder - right.sortOrder;
     if (compare === 0 && left instanceof BinaryExpression && right instanceof BinaryExpression) {
         compare = left.operator.localeCompare(right.operator);
@@ -38,7 +37,7 @@ function shouldSwapOrder(left: Expression, right: Expression) {
     if (compare === 0) {
         compare = left.toString().localeCompare(right.toString());
     }
-    return compare > 0;
+    return compare;
 }
 
 export const normalize = memoize(function(e: Expression): Expression {
@@ -50,18 +49,15 @@ export const normalize = memoize(function(e: Expression): Expression {
         let right = normalize(e.right);
         let operator = e.operator;
         let canSwap = reflectOperators[operator] != null;
-        if (canSwap && shouldSwapOrder(left, right)) {
+        if (canSwap && compareSortOrder(left, right) > 0) {
             [left, right] = [right, left]
             operator = reflectOperators[operator]
         }
-        if (reassociateLeft[operator]) {
-            if (right instanceof BinaryExpression && right.operator === operator) {
-                left = new BinaryExpression(left, operator, right.left);
-                right = right.right;
-            }
-        }
         if (left !== e.left || right !== e.right || operator !== e.operator) {
             e = new BinaryExpression(left, operator, right);
+        }
+        if (reassociateLeft[operator]) {
+            e = joinExpressions(e.split(operator).sort(compareSortOrder), operator)!;
         }
     }
     return e

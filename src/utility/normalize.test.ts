@@ -37,12 +37,12 @@ assert.deepEqual(
     normalize(b(
         b("foo", "&&", 10),
         "&&",
-        b("foo", "||", 10),
+        b("foo", "||", 20),
     )),
     b(
-        b("foo", "&&", 10),
+        b("foo", "||", 20),
         "&&",
-        b("foo", "||", 10),
+        b("foo", "&&", 10),
     )
 )
 
@@ -53,9 +53,9 @@ assert.deepEqual(
         b("foo", "&&", 10),
     )),
     b(
-        b("foo", "&&", 10),
-        "&&",
         b("foo", "||", 10),
+        "&&",
+        b("foo", "&&", 10),
     )
 )
 
@@ -75,21 +75,21 @@ assert.deepEqual(
 )
 
 assert.deepEqual(
-    normalize(b("foo", ">", "bar")),
+    normalize(b("foo", ">=", "bar")),
     b("bar", "<=", "foo")
 )
 
 assert.deepEqual(
-    normalize(b("foo", ">=", "bar")),
+    normalize(b("foo", ">", "bar")),
     b("bar", "<", "foo")
 )
 
 assert.deepEqual(
-    normalize(b("foo", "<", "bar")),
+    normalize(b("foo", "<=", "bar")),
     b("bar", ">=", "foo")
 )
 
 assert.deepEqual(
-    normalize(b("foo", "<=", "bar")),
+    normalize(b("foo", "<", "bar")),
     b("bar", ">", "foo")
 )

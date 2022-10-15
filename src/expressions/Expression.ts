@@ -1,5 +1,4 @@
 
-
 import { Replace, traverse } from "@glas/traverse";
 import { equals } from "../utility/equals";
 import { memoize } from "../utility/memoize";

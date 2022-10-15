@@ -43,13 +43,3 @@ assert.deepEqual(
     negate(new BinaryExpression(foo, ComparisonOperator.greaterThanOrEqual, bar)),
     new BinaryExpression(foo, ComparisonOperator.lessThan, bar)
 )
-
-assert.deepEqual(
-    negate(new BinaryExpression(foo, LogicalOperator.is, bar)),
-    new BinaryExpression(foo, LogicalOperator.isnt, bar)
-)
-
-assert.deepEqual(
-    negate(new BinaryExpression(foo, LogicalOperator.isnt, bar)),
-    new BinaryExpression(foo, LogicalOperator.is, bar)
-)

@@ -12,8 +12,6 @@ const negateOperators: { [operator: string]: BinaryOperator } = {
     [ComparisonOperator.lessThanOrEqual]: ComparisonOperator.greaterThan,
     [ComparisonOperator.equality]: ComparisonOperator.inequality,
     [ComparisonOperator.inequality]: ComparisonOperator.equality,
-    [LogicalOperator.is]: LogicalOperator.isnt,
-    [LogicalOperator.isnt]: LogicalOperator.is,
 }
 
 export const negate = memoize(

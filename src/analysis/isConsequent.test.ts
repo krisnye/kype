@@ -6,39 +6,11 @@ import { Literal } from "../expressions/Literal";
 import { Reference } from "../expressions/Reference";
 import { negate } from "../utility/negate";
 import { normalize } from "../utility/normalize";
+import { and, b, c, e, not, or } from "../utility/testUtils";
 import { isConsequent } from "./isConsequent";
 import { simplify } from "./simplify";
 
-function e(expr: string): Reference
-function e(expr: number): Literal
-function e(expr: string | number | Expression): Expression
-function e(expr: string | number | Expression) {
-    if (!(expr instanceof Expression)) {
-        expr = typeof expr === 'string' ? new Reference(expr) : new Literal(expr);
-    }
-    return expr;
-}
-function b(left: string | number | Expression, operator: string, right: string | number | Expression) {
-    left = e(left);
-    right = e(right);
-    return new BinaryExpression(left, operator, right);
-}
-function c(callee: any, ...args: Array<string | number | Expression>) {
-    return new CallExpresssion(e(callee), args.map(e));
-}
-function not(a: any) {
-    return negate(e(a));
-}
-type E = string | number | Expression
-function and(A: E, B: E) {
-    return b(A, "&&", B);
-}
-function or(A: E, B: E) {
-    return b(A, "||", B);
-}
-function is(A: E, B: E) {
-    return b(A, "is", B);
-}
+
 function testConsequent(a: Expression, b: Expression, ab_expected: true | false | null, ba_expected: true | false | null) {
     const ab_actual = isConsequent(a, b);
     const ba_actual = isConsequent(b, a);
@@ -134,5 +106,3 @@ testSimplify(and(or(A, or(B, C)), not(B)), and(not(B), or(A, C)));
 
 // test simplify 
 testSimplify(b(10, "==", A), b(A, "==", 10));
-// make sure 'is' operator is not sorted
-testSimplify(is(10, A), is(10, A));
