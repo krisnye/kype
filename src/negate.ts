@@ -1,9 +1,9 @@
-import { BinaryExpression } from "../expressions/BinaryExpression";
-import { BinaryOperator, ComparisonOperator, LogicalOperator } from "../expressions/BinaryOperator";
-import { Expression } from "../expressions/Expression";
-import { UnaryExpression } from "../expressions/UnaryExpression";
-import { UnaryOperator } from "../expressions/UnaryOperator";
-import { memoize } from "./memoize";
+import { BinaryExpression } from "./expressions/BinaryExpression";
+import { BinaryOperator, ComparisonOperator, LogicalOperator } from "./expressions/BinaryOperator";
+import { Expression } from "./expressions/Expression";
+import { UnaryExpression } from "./expressions/UnaryExpression";
+import { UnaryOperator } from "./expressions/UnaryOperator";
+import { memoize } from "./utility/memoize";
 
 const negateOperators: { [operator: string]: BinaryOperator } = {
     [ComparisonOperator.greaterThan]: ComparisonOperator.lessThanOrEqual,

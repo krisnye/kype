@@ -1,11 +1,11 @@
-import { BinaryExpression } from "../expressions/BinaryExpression";
-import { LogicalOperator } from "../expressions/BinaryOperator";
-import { Expression } from "../expressions/Expression";
-import { Literal } from "../expressions/Literal";
-import { UnaryExpression } from "../expressions/UnaryExpression";
-import { UnaryOperator } from "../expressions/UnaryOperator";
-import { equals } from "../utility/equals";
-import splitExpressions from "../utility/splitExpressions";
+import { BinaryExpression } from "./expressions/BinaryExpression";
+import { LogicalOperator } from "./expressions/BinaryOperator";
+import { Expression } from "./expressions/Expression";
+import { Literal } from "./expressions/Literal";
+import { UnaryExpression } from "./expressions/UnaryExpression";
+import { UnaryOperator } from "./expressions/UnaryOperator";
+import { equals } from "./utility/equals";
+import splitExpressions from "./utility/splitExpressions";
 
 type Maybe = true | false | null
 //  a  \  b |  true   false   null

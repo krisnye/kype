@@ -2,14 +2,14 @@ import { BinaryExpression } from "../expressions/BinaryExpression";
 import { Expression } from "../expressions/Expression";
 
 export function joinExpressions(expressions: Expression[], operator: string): Expression {
-    let right = expressions[expressions.length - 1];
-    for (let i = expressions.length - 2; i >= 0; i--) {
-        const left = expressions[i];
-            right = new BinaryExpression(
-                left,
-                operator,
-                right,
-            );
+    let left = expressions[0];
+    for (let i = 1; i < expressions.length; i++) {
+        const right = expressions[i];
+        left = new BinaryExpression(
+            left,
+            operator,
+            right,
+        );
     }
-    return right;
+    return left;
 }

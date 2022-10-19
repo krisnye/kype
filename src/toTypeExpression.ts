@@ -1,8 +1,8 @@
-import { LogicalOperator } from "../expressions/BinaryOperator";
-import { Expression } from "../expressions/Expression";
-import { Reference } from "../expressions/Reference";
-import { equals } from "../utility/equals";
-import { joinExpressions } from "../utility/joinExpressions";
+import { LogicalOperator } from "./expressions/BinaryOperator";
+import { Expression } from "./expressions/Expression";
+import { Reference } from "./expressions/Reference";
+import { equals } from "./utility/equals";
+import { joinExpressions } from "./utility/joinExpressions";
 import { normalize } from "./normalize";
 
 export function toTypeExpression(allExpressions: Expression, subExpressionToType: Expression): Expression | undefined {

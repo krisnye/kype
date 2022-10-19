@@ -1,13 +1,14 @@
-import { BinaryExpression } from "../expressions/BinaryExpression"
-import { Expression } from "../expressions/Expression"
-import { UnaryExpression } from "../expressions/UnaryExpression"
-import { combineExpressions } from "../utility/combineExpressions"
-import { equals } from "../utility/equals"
-import { memoize } from "../utility/memoize"
+import { BinaryExpression } from "./expressions/BinaryExpression"
+import { Expression } from "./expressions/Expression"
+import { UnaryExpression } from "./expressions/UnaryExpression"
+import { combineExpressions } from "./utility/combineExpressions"
+import { equals } from "./utility/equals"
+import { memoize } from "./utility/memoize"
 import { normalize } from "./normalize"
-import splitExpressions from "../utility/splitExpressions"
+import splitExpressions from "./utility/splitExpressions"
 import { isConsequent } from "./isConsequent"
-import { joinExpressions } from "../utility/joinExpressions"
+import { joinExpressions } from "./utility/joinExpressions"
+import { Literal } from "./expressions/Literal"
 
 function find<T>(items: Iterable<T>, predicate: (value: T) => boolean): T | null {
     for (let item of items) {
@@ -22,20 +23,26 @@ function find<T>(items: Iterable<T>, predicate: (value: T) => boolean): T | null
 export const simplify = memoize(function(e: Expression): Expression {
     e = normalize(e);
 
-    let terms = e.split("&&");
-    for (let i = terms.length - 1; i > 0; i--) {
-        let left = terms[i - 1];
-        let right = terms[i];
-        if (isConsequent(left, right)) {
-            //  remove the right
-            terms.splice(i, 1);
+    {
+        //  after normalization then similar terms are adjacent to eachother
+        //  if we remove ones which are already consequent then this simplifies
+        //  for instance
+        //  a < 10 && a < 20 && a < 30      -->     a < 10
+        let terms = e.split("&&");
+        for (let i = terms.length - 1; i > 0; i--) {
+            let left = terms[i - 1];
+            let right = terms[i];
+            if (isConsequent(left, right)) {
+                //  remove the right
+                terms.splice(i, 1);
+            }
+            else if (isConsequent(right, left)) {
+                //  remove the left;
+                terms.splice(i - 1, 1);
+            }
         }
-        else if (isConsequent(right, left)) {
-            //  remove the left;
-            terms.splice(i - 1, 1);
-        }
+        e = joinExpressions(terms, "&&");
     }
-    e = joinExpressions(terms, "&&");
 
     if (e instanceof BinaryExpression) {
         let left = simplify(e.left);
@@ -79,7 +86,10 @@ export const simplify = memoize(function(e: Expression): Expression {
                 right = filteredRight;
             }
         }
-        if (e.left !== left || e.right !== right) {
+        if (left instanceof Literal && right instanceof Literal) {
+            e = new Literal(eval(`(${left} ${e.operator} ${right})`));
+        }
+        else if (e.left !== left || e.right !== right) {
             e = normalize(new BinaryExpression(left, e.operator, right));
         }
     }
