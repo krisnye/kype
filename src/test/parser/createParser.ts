@@ -7,10 +7,11 @@ import { GroupParselet } from "./parselets/GroupParselet";
 import { CallParselet } from "./parselets/CallParselet";
 import { Reference } from "../../expressions/Reference";
 import { Literal } from "../../expressions/Literal";
+import { DotExpression } from "../../expressions/DotExpression";
 
 export function createParser() {
     return new Parser({
-        Id: new TerminalParselet((token) => new Reference(token.source)),
+        Id: new TerminalParselet((token) => token.source === "@" ? new DotExpression() : new Reference(token.source)),
         Number: new TerminalParselet((token) => new Literal(eval(token.source))),
         Integer: new TerminalParselet((token) => new Literal(eval(token.source))),
         Operator: new PrefixOperatorParselet(),

@@ -12,9 +12,11 @@ function testNegate(propositionString: string, negateString: string) {
     assert.equal(normalize(p).toString(), normalize(notNotP).toString())
 }
 
-testNegate("foo", "!foo")
-testNegate("foo == bar", "foo != bar")
-testNegate("foo < bar", "foo >= bar")
-testNegate("foo > bar", "foo <= bar")
-testNegate("foo <= bar", "foo > bar")
-testNegate("foo >= bar", "foo < bar")
+testNegate("foo", "!foo");
+testNegate("foo == bar", "foo != bar");
+testNegate("foo < bar", "foo >= bar");
+testNegate("foo > bar", "foo <= bar");
+testNegate("foo <= bar", "foo > bar");
+testNegate("foo >= bar", "foo < bar");
+testNegate("foo is Bar", "foo isnt Bar");
+testNegate("foo isnt Bar", "foo is Bar");

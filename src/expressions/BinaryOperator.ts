@@ -4,6 +4,11 @@ export enum LogicalOperator {
     or = "||",
 }
 
+export enum TypeOperator {
+    is = "is",
+    isnt = "isnt",
+}
+
 export enum MathOperator {
     addition = "+",
     subtraction = "-",
@@ -22,7 +27,7 @@ export enum ComparisonOperator {
     greaterThanOrEqual = ">=",
 }
 
-export type BinaryOperator = LogicalOperator | MathOperator | ComparisonOperator;
+export type BinaryOperator = LogicalOperator | MathOperator | ComparisonOperator | TypeOperator;
 
 const operatorSortOrder = Object.fromEntries([
     "&&",

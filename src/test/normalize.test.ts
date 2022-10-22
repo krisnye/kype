@@ -22,4 +22,7 @@ testNormalize("foo < bar", "bar > foo")
 testNormalize("-4 < x", "x > -4")
 testNormalize(
     "x < 120 && x < 20 && x < 112 && 12 > x && 15 > x && -4 > x",
-    "x < -4 && x < 12 && x < 15 && x < 20 && x < 112 && x < 120")
+    "x < -4 && x < 12 && x < 15 && x < 20 && x < 112 && x < 120"
+)
+
+testNormalize("foo < @ && bar > @ && 14 > @", "@ < bar && @ > foo && @ < 14");

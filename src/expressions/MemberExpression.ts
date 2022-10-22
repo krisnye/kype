@@ -1,5 +1,6 @@
 
 import { Expression } from "./Expression";
+import { Reference } from "./Reference";
 
 export class MemberExpression extends Expression {
 
@@ -14,7 +15,7 @@ export class MemberExpression extends Expression {
     }
 
     toStringInternal() {
-        return `${this.object}[${this.property}]`;
+        return this.property instanceof Reference ?  `${this.object}.${this.property}` : `${this.object}[${this.property}]`;
     }
 
 }

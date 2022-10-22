@@ -15,6 +15,13 @@ export class Literal extends Expression {
         return this.value - b.value;
     }
 
+    isLessThan(b: Expression, orEqual = false): boolean | null {
+        if (b instanceof Literal) {
+            return orEqual ? this.value <= b.value : this.value < b.value;
+        }
+        return null;
+    }
+
     toStringInternal() {
         return `${this.value}`;
     }

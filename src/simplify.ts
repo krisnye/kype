@@ -5,10 +5,14 @@ import { combineExpressions } from "./utility/combineExpressions"
 import { equals } from "./utility/equals"
 import { memoize } from "./utility/memoize"
 import { normalize } from "./normalize"
-import splitExpressions from "./utility/splitExpressions"
+import { splitExpressions } from "./utility/splitExpressions"
 import { isConsequent } from "./isConsequent"
 import { joinExpressions } from "./utility/joinExpressions"
 import { Literal } from "./expressions/Literal"
+import { TypeExpression } from "./expressions/TypeExpression"
+import { combineTypes } from "./combineTypes"
+import { TypeOperator } from "./expressions/BinaryOperator"
+import { Types } from "./types"
 
 function find<T>(items: Iterable<T>, predicate: (value: T) => boolean): T | null {
     for (let item of items) {
@@ -19,9 +23,22 @@ function find<T>(items: Iterable<T>, predicate: (value: T) => boolean): T | null
     return null;
 }
 
+function isTrue(a: Expression) {
+    return a instanceof Literal && a.value !== 0;
+}
+
+function isFalse(a: Expression) {
+    return a instanceof Literal && a.value === 0;
+}
+
 // A && B || A => A
 export const simplify = memoize(function(e: Expression): Expression {
     e = normalize(e);
+
+    if (e instanceof TypeExpression) {
+        let proposition = simplify(e.proposition);
+        return proposition === e.proposition ? e : new TypeExpression(proposition);
+    }
 
     {
         //  after normalization then similar terms are adjacent to eachother
@@ -47,7 +64,16 @@ export const simplify = memoize(function(e: Expression): Expression {
     if (e instanceof BinaryExpression) {
         let left = simplify(e.left);
         let right = simplify(e.right);
+        if (left instanceof TypeExpression && right instanceof TypeExpression) {
+            return combineTypes(left, e.operator, right);
+        }
         if (equals(left, right)) {
+            if (e.operator === "==") {
+                return new Literal(1);
+            }
+            if (e.operator === "!=") {
+                return new Literal(0);
+            }
             if (e.operator === "&&" || e.operator == "||" || e.operator === "&" || e.operator == "|") {
                 //  A && A => A
                 //  A || A => A
@@ -57,24 +83,56 @@ export const simplify = memoize(function(e: Expression): Expression {
             }
         }
         else if (e.operator === "||") {
+            if (isTrue(left) || isFalse(right)) {
+                return left;
+            }
+            if (isTrue(right) || isFalse(left)) {
+                return right;
+            }
             if (find(splitExpressions(left, "&&"), c => equals(c, right))) {
                 // A && B || A => A
-                return right
+                return right;
             }
             if (find(splitExpressions(right, "&&"), c => equals(c, left))) {
                 //  A || A && B => A
-                return left
+                return left;
             }
             if (find(splitExpressions(left, "||"), c => equals(c, right))) {
                 // (A || B) || A => A || B
-                return left
+                return left;
             }
             if (find(splitExpressions(right, "||"), c => equals(c, left))) {
                 //  A || (A && B) => A || B
-                return right
+                return right;
+            }
+            if (left instanceof BinaryExpression &&
+                right instanceof BinaryExpression &&
+                equals(left.left, right.left)
+            ) {
+                if (equals(left.right, right.right)) {
+                    if (left.operator === ">" && right.operator === "<") {
+                        return new BinaryExpression(left.left, "!=", left.right);
+                    }
+                    if (
+                        (left.operator === ">=" && right.operator === "<") ||
+                        (left.operator === ">" && right.operator === "<=") ||
+                        (left.operator === ">=" && right.operator === "<=")
+                    ) {
+                        return new Literal(1);
+                    }
+                }
+                else if (left.operator === ">" && right.operator === "<" && left.right.isLessThan(right.right)) {
+                    return new BinaryExpression(left.left, TypeOperator.is, Types.Number);
+                }
             }
         }
         else if (e.operator === "&&") {
+            if (isTrue(left) || isFalse(right)) {
+                return right;
+            }
+            if (isTrue(right) || isFalse(left)) {
+                return left;
+            }
             //  we only have to filter the right because we know after normalization
             //  that the right side will have the || (if it's on both... then we can't determine anyways)
             let filteredRight = combineExpressions(right.split("||").filter(term => isConsequent(left, term) === null), "||");
@@ -84,6 +142,15 @@ export const simplify = memoize(function(e: Expression): Expression {
             else
             {
                 right = filteredRight;
+            }
+            if (left instanceof BinaryExpression &&
+                right instanceof BinaryExpression &&
+                equals(left.left, right.left) &&
+                equals(left.right, right.right)
+            ) {
+                if (left.operator === ">=" && right.operator === "<=") {
+                    return new BinaryExpression(left.left, "==", left.right);
+                }
             }
         }
         if (left instanceof Literal && right instanceof Literal) {
@@ -99,5 +166,5 @@ export const simplify = memoize(function(e: Expression): Expression {
             e = new UnaryExpression(e.operator, argument);
         }
     }
-    return e
+    return e;
 }, true);

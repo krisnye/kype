@@ -1,4 +1,5 @@
 import { Expression } from "../../../expressions/Expression";
+import { TypeExpression } from "../../../expressions/TypeExpression";
 import { Parser } from "../Parser";
 import { Token } from "../Token";
 import { PrefixOperatorParselet } from "./PrefixOperatorParselet";
@@ -17,7 +18,12 @@ export class GroupParselet extends PrefixOperatorParselet {
     parse(p: Parser, open: Token): Expression {
         let value = this.parseArgument(p, open, 0) as Expression;
         let close = p.consume(this.closeToken);
-        return value;
+        if (open.source === "{") {
+            return new TypeExpression(value);
+        }
+        else {
+            return value;
+        }
     }
 
 }

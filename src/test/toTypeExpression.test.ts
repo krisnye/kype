@@ -1,42 +1,17 @@
 import { strict as assert } from "assert";
-import { Expression } from "../expressions/Expression";
 import { equals } from "../utility/equals";
 import { toTypeExpression } from "../toTypeExpression";
+import { parseExpression } from "./parseExpression";
 
-type E = string | number | Expression
-function testType(all: Expression, expected: Expression, toType: E = "x") {
-    // toType = e(toType);
-    // const type = toTypeExpression(all, toType);
-    // assert(equals(type, expected), `\n${all} => ${toType}, expected ${expected}, actual: ${type}`);
+function testToType(allString: string, expectedString: string, toTypeString = "x") {
+    let toType = parseExpression(toTypeString);
+    let all = parseExpression(allString);
+    let expected = parseExpression(expectedString);
+    const type = toTypeExpression(all, toType);
+    assert(equals(type, expected), `\n${all} => ${toType}\n    expected: ${expected}\n    actual  : ${type}\n`);
 }
 
-// testType(b(12, ">", "x"), b("this", "<", 12));
-
-// testType(
-//     and(
-//         b(12, ">", "x"),
-//         b(12, ">", "y"),
-//         b(12, ">", "z"),
-//         b(5, "<", "x"),
-//     ),
-//     and(
-//         b("this", "<", 12),
-//         b("this", ">", 5)
-//     )
-// );
-
-// testType(
-//     and(
-//         b(12, ">", "x"),
-//         b(c("foo", "x"), ">", "y"),
-//         b(12, ">", "z"),
-//         b(5, "<", "x"),
-//     ),
-//     and(
-//         b("this", "<", 12),
-//         b(c("foo", "this"), ">", "y"),
-//         b("this", ">", 5),
-//     )
-// );
-
-
+testToType("12 > x", "{ @ < 12 }");
+testToType("12 > x && 12 > y && 12 > z && 5 < x", "{ @ > 5 && @ < 12 }");
+testToType("12 > x && foo(x) > y && 12 > z && 5 < x", "{ @ > 5 && @ < 12 && foo(@) > y }");
+testToType("foo(x, 1) && foo(y, 2) && foo(z, 3)", "{ foo(@, 1) }");

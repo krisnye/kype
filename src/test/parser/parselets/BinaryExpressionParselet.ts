@@ -4,6 +4,7 @@ import { InfixParselet } from "../InfixParslet";
 import { BinaryExpression } from "../../../expressions/BinaryExpression";
 import { Expression } from "../../../expressions/Expression";
 import { Token } from "../Token";
+import { MemberExpression } from "../../../expressions/MemberExpression";
 
 export class BinaryExpressionParselet extends InfixParselet {
 
@@ -19,6 +20,10 @@ export class BinaryExpressionParselet extends InfixParselet {
 
     parse(p: Parser, left: Expression, operator: Token): Expression {
         let right = this.parseRight(p, operator);
+
+        if (operator.source === ".") {
+            return new MemberExpression(left, right);
+        }
         
         return new BinaryExpression(
             left as Expression,

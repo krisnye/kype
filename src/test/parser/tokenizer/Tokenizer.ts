@@ -1,7 +1,6 @@
 import { Line } from "./Line";
 import { Token } from "../Token";
 import { TokenType, tokenTypes } from "./TokenType";
-import { indentation } from "./indentation";
 
 export class Tokenizer {
 
@@ -46,7 +45,6 @@ export class Tokenizer {
                 }
             }
         }
-        tokens = indentation(tokens);
         return tokens;
     }
 

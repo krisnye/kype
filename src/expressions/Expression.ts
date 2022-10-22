@@ -2,7 +2,7 @@
 import { Replace, traverse } from "@glas/traverse";
 import { equals } from "../utility/equals";
 import { memoize } from "../utility/memoize";
-import splitExpressions from "../utility/splitExpressions";
+import { splitExpressions } from "../utility/splitExpressions";
 
 export abstract class Expression {
 
@@ -15,6 +15,10 @@ export abstract class Expression {
     public compare(b: Expression) {
         return (this.sortOrder - b.sortOrder)
             || this.compareSortOrderSameType(b)
+    }
+
+    isLessThan(b: Expression): boolean | null {
+        return null;
     }
 
     split(operator: string) {

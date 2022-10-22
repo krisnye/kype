@@ -52,12 +52,6 @@ const EolName = "Eol";
 export const tokenTypes = {
     //  Comment must come before Operator otherwise '//' interpreted as an operator
     Comment: new TokenType("Comment", /^\/\/.*/, { isWhitespace: true }),
-    Dent: new TokenType(DentName, /^(    )/, {
-        isWhitespace: true,
-        previousPredicate(token: Token | undefined) {
-            return token == null || token.type === DentName || token.type === EolName;
-        }
-    }),
     Whitespace: new TokenType("Whitespace", /^[^\S\r\n]+/, { isWhitespace: true }),
     OpenParen: new TokenType("OpenParen", /^\(/),
     CloseParen: new TokenType("CloseParen", /^\)/),
@@ -69,18 +63,10 @@ export const tokenTypes = {
     Integer: new TokenType("Integer", /^([1-9][0-9]*|0x[0-9]+|0\b)/, { value: JSON.parse }),
     OutlineString: new TokenType("OutlineString", /^""/),
     String: new TokenType("String", /^"([^"\\]|\\.)*"/, { value: JSON.parse }),
-    RegExp: new TokenType("RegExp", /^\/([^/]|\\.)*\//, { value: eval }),
     // Operator has to come after Number/Integer so an adjacent - or + binds to literal.
-    Operator: new TokenType("Operator", /^(\bvoid\b|\btypeof\b|\bis\b|[\=\+\-\*\&\^\%\!\~\/\.\:\;\?\,\<\>\|\&:]+)/i),
+    Operator: new TokenType("Operator", /^(\bisnt\b|\bis\b|[\=\+\-\*\&\^\%\!\~\/\.\:\;\?\,\<\>\|\&:]+)/i),
     //  Id has to come after Operator because of operator 'void'
-    In: new TokenType("In", /^in\b/),
-    If: new TokenType("If", /^if\b/),
     Null: new TokenType("Null", /^null\b/),
-    Else: new TokenType("Else", /^else\b/),
-    Return: new TokenType("Return", /^return\b/),
-    Class: new TokenType("Class", /^class\b/),
-    Extends: new TokenType("Extends", /^extends\b/),
-    For: new TokenType("For", /^for\b/),
     Id: new TokenType("Id", /^[_@a-z][_$@a-z0-9]*/i),
     EscapedId: new TokenType("EscapedId", /^`([^`\\]|\\.)*`/, { value: source => source.slice(1, -1) }),
     Eol: new TokenType(EolName, /^\r\n|\r|\n/, { isWhitespace: true }),

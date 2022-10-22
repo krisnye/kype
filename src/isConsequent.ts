@@ -4,8 +4,10 @@ import { Expression } from "./expressions/Expression";
 import { Literal } from "./expressions/Literal";
 import { UnaryExpression } from "./expressions/UnaryExpression";
 import { UnaryOperator } from "./expressions/UnaryOperator";
+import { simplify } from "./simplify";
+import { Types } from "./types";
 import { equals } from "./utility/equals";
-import splitExpressions from "./utility/splitExpressions";
+import { splitExpressions } from "./utility/splitExpressions";
 
 type Maybe = true | false | null
 //  a  \  b |  true   false   null
@@ -48,6 +50,8 @@ function same(a: Maybe, b: Maybe): Maybe {
  * null if we cannot determine
  */
 export function isConsequent(a: Expression, b: Expression): Maybe {
+    a = simplify(a);
+    b = simplify(b);
     if (equals(a, b)) {
         return true;
     }
@@ -119,48 +123,58 @@ export function isConsequent(a: Expression, b: Expression): Maybe {
                     switch (a.operator) {
                         case '>':
                             switch (b.operator) {
-                                case '>=': case '!=': return true
-                                case '<': case '<=': case '==': return false
+                                case '>=': case '!=': return true;
+                                case '<': case '<=': case '==': return false;
                             }
-                            break
+                            break;
                         case '>=':
                             switch (b.operator) {
-                                case '<': return false
+                                case '<': return false;
                             }
-                            break
+                            break;
                         case '<':
                             switch (b.operator) {
-                                case '<=': case '!=': return true
-                                case '>': case '>=': case '==': return false
+                                case '<=': case '!=': return true;
+                                case '>': case '>=': case '==': return false;
                             }
-                            break
+                            break;
                         case '<=':
                             switch (b.operator) {
-                                case '>': return false
+                                case '>': return false;
                             }
-                            break
+                            break;
                         case '==':
                             switch (b.operator) {
-                                case '>=': case '<=': return true
-                                case '>': case '<': case '!=': return false
+                                case '>=': case '<=': return true;
+                                case '>': case '<': case '!=': return false;
                             }
-                            break
+                            break;
                         case '!=':
                             switch (b.operator) {
-                                case '==': return false
+                                case '==': return false;
                             }
-                            break
+                            break;
                         case 'is':
                             switch (b.operator) {
-                                case 'isnt': return false
+                                case 'is': return true;
+                                case 'isnt': return false;
                             }
-                            break
+                            break;
                         case 'isnt':
                             switch (b.operator) {
-                                case 'is': return false
+                                case 'is': return false;
+                                case 'isnt': return true;
                             }
-                            break
+                            break;
                     }
+                }
+                else if (a.operator === "is" && b.operator === "is") {
+                    // at this point, we KNOW that a.left == b.left and a.right != b.right
+                    return false;
+                }
+                else if (b.operator === "is" && equals(b.right, Types.Number)) {
+                    //  if the right hand side is of type number then just check if left is a number
+                    return a.isLeftNumber();
                 }
             }
         }

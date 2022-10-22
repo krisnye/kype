@@ -1,4 +1,6 @@
 
+import { Types } from "../types";
+import { equals } from "../utility/equals";
 import { compareBinaryOperator } from "./BinaryOperator";
 import { Expression } from "./Expression";
 
@@ -18,8 +20,28 @@ export class BinaryExpression extends Expression {
 
     public compareSortOrderSameType(b: BinaryExpression): number {
         return this.left.compare(b.left)
-            || compareBinaryOperator(this.operator, b.operator)
-            || this.right.compare(b.right);
+            || this.right.compare(b.right)
+            || compareBinaryOperator(this.operator, b.operator);
+    }
+
+    isLeftNumber(): boolean | null {
+        switch (this.operator) {
+            //  these operators are only valid on numbers
+            //  so we know the left hand side is a number.
+            case "<":
+            case "<=":
+            case ">":
+            case ">=":
+                return true;
+            case "is":
+                return equals(this.right, Types.Number);
+            case "isnt":
+                if (equals(this.right, Types.Number)) {
+                    return false;
+                }
+            default:
+                return null;
+        }
     }
 
     toStringInternal() {
