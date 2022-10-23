@@ -5,7 +5,7 @@ import { Literal } from "./expressions/Literal";
 import { UnaryExpression } from "./expressions/UnaryExpression";
 import { UnaryOperator } from "./expressions/UnaryOperator";
 import { simplify } from "./simplify";
-import { Types } from "./types";
+import { Types } from "./Types";
 import { equals } from "./utility/equals";
 import { splitExpressions } from "./utility/splitExpressions";
 

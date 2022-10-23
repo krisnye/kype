@@ -1,5 +1,5 @@
 
-import { Types } from "../types";
+import { Types } from "../Types";
 import { equals } from "../utility/equals";
 import { compareBinaryOperator } from "./BinaryOperator";
 import { Expression } from "./Expression";

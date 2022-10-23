@@ -11,6 +11,14 @@ export class Literal extends Expression {
         this.value = value;
     }
 
+    isNegativeInfinity() {
+        return this.value === Number.NEGATIVE_INFINITY;
+    }
+
+    isPositiveInfinity() {
+        return this.value === Number.POSITIVE_INFINITY;
+    }
+
     public compareSortOrderSameType(b: Literal): number {
         return this.value - b.value;
     }
@@ -23,7 +31,12 @@ export class Literal extends Expression {
     }
 
     toStringInternal() {
-        return `${this.value}`;
+        return this.value.toString();
+    }
+
+    static operation(left: Literal, op: string, right: Literal) {
+        let value = eval(`(${left.value} ${op} ${right.value})`);
+        return new Literal(value);
     }
 
 }

@@ -43,9 +43,23 @@ testSimplify("3 * 4 - x", "12 - x");
 testSimplify("@ < 10 || 0 < @", "@ is Number");
 testSimplify("foo < x || foo > x", "foo != x");
 
+//  test float +/-infinity
+testSimplify("POS_INFINITY + 12.0", "POS_INFINITY");
+testSimplify("POS_INFINITY - 12.0", "POS_INFINITY");
+testSimplify("POS_INFINITY * 12.0", "POS_INFINITY");
+testSimplify("POS_INFINITY / 12.0", "POS_INFINITY");
+testSimplify("NEG_INFINITY + 12.0", "NEG_INFINITY");
+testSimplify("NEG_INFINITY - 12.0", "NEG_INFINITY");
+testSimplify("NEG_INFINITY * 12.0", "NEG_INFINITY");
+testSimplify("NEG_INFINITY / 12.0", "NEG_INFINITY");
+
 //  test simplifying types
 testSimplify("{ @ > 0 } && { @ < 10 }", "{ @ > 0 && @ < 10 }");
 testSimplify("{ @ < 10 } || { 0 < @ }", "{ @ is Number }");
 testSimplify("{ @ >= 0 } && { @ <= 0 }", "{ @ == 0 }");
 testSimplify("{ @ < 0 } || { @ > 0 }", "{ @ != 0 }");
 
+//  type addition
+testSimplify("{ @ > 0 && @ < 1 } + { @ > 2 && @ < 3 }", "{ @ > 2 && @ < 4 }");
+//  type subtraction
+testSimplify("{ @ > 0 && @ < 1 } - { @ > 2 && @ < 3 }", "{ @ > -3 && @ < -1 }");

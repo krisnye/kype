@@ -3,16 +3,16 @@ export function memoize<A extends object, B>(fn: (a: A) => B, cacheResultAsKey =
     return function(arg) {
         let result = cache.get(arg);
         if (result === undefined) {
-            try {
+            // try {
             cache.set(arg, result = fn(arg));
             if (cacheResultAsKey) {
                 cache.set(result as any as A, result);
             }
-            }
-            catch(e) {
-                console.log("Error?", arg, typeof arg);
-                throw e;
-            }
+            // }
+            // catch(e) {
+            //     console.log("Error?", arg, typeof arg);
+            //     throw e;
+            // }
         }
         return result;
     }

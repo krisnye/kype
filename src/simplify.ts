@@ -12,7 +12,7 @@ import { Literal } from "./expressions/Literal"
 import { TypeExpression } from "./expressions/TypeExpression"
 import { combineTypes } from "./combineTypes"
 import { TypeOperator } from "./expressions/BinaryOperator"
-import { Types } from "./types"
+import { Types } from "./Types"
 
 function find<T>(items: Iterable<T>, predicate: (value: T) => boolean): T | null {
     for (let item of items) {
@@ -82,6 +82,15 @@ export const simplify = memoize(function(e: Expression): Expression {
                 return left;
             }
         }
+        // else if ((e.operator === ">" || e.operator === "<") && right instanceof Literal && right.integer) {
+        //     // convert comparisons against integer literals to use >= of adjacent integer.
+        //     switch (e.operator) {
+        //         case ">":
+        //             return new BinaryExpression(left, ">=", new Literal((right as Literal).value + 1, true));
+        //         case "<":
+        //             return new BinaryExpression(left, "<=", new Literal((right as Literal).value - 1, true));
+        //     }
+        // }
         else if (e.operator === "||") {
             if (isTrue(left) || isFalse(right)) {
                 return left;
@@ -154,7 +163,7 @@ export const simplify = memoize(function(e: Expression): Expression {
             }
         }
         if (left instanceof Literal && right instanceof Literal) {
-            e = new Literal(eval(`(${left} ${e.operator} ${right})`));
+            e = Literal.operation(left, e.operator, right);
         }
         else if (e.left !== left || e.right !== right) {
             e = normalize(new BinaryExpression(left, e.operator, right));
