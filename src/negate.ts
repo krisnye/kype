@@ -1,5 +1,5 @@
 import { BinaryExpression } from "./expressions/BinaryExpression";
-import { BinaryOperator, ComparisonOperator, LogicalOperator, TypeOperator } from "./expressions/BinaryOperator";
+import { BinaryOperator, ComparisonOperator, LogicalOperator } from "./expressions/BinaryOperator";
 import { Expression } from "./expressions/Expression";
 import { UnaryExpression } from "./expressions/UnaryExpression";
 import { UnaryOperator } from "./expressions/UnaryOperator";
@@ -12,8 +12,8 @@ const negateOperators: { [operator: string]: BinaryOperator } = {
     [ComparisonOperator.lessThanOrEqual]: ComparisonOperator.greaterThan,
     [ComparisonOperator.equality]: ComparisonOperator.inequality,
     [ComparisonOperator.inequality]: ComparisonOperator.equality,
-    [TypeOperator.is]: TypeOperator.isnt,
-    [TypeOperator.isnt]: TypeOperator.is,
+    // [TypeOperator.is]: TypeOperator.isnt,
+    // [TypeOperator.isnt]: TypeOperator.is,
 }
 
 export const negate = memoize(

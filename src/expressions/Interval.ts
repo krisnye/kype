@@ -25,18 +25,25 @@ export class Interval extends Expression {
         return `{${this.minExclusive ? `>` : ``}${this.min} .. ${this.maxExclusive ? `<` : ``}${this.max}}`;
     }
 
-    toType() {
-        return new TypeExpression(
-            new BinaryExpression(
-                new BinaryExpression(new DotExpression(), this.minExclusive ? ">" : ">=", new Literal(this.min)),
-                "&&",
-                new BinaryExpression(new DotExpression(), this.maxExclusive ? "<" : "<=", new Literal(this.max)),
-            )
-        )
+    toType(): TypeExpression {
+        let expressions: Expression[] = [];
+        if (this.min !== Number.NEGATIVE_INFINITY) {
+            expressions.push(new BinaryExpression(new DotExpression(), this.minExclusive ? ">" : ">=", new Literal(this.min)));
+        }
+        if (this.max !== Number.POSITIVE_INFINITY) {
+            expressions.push(new BinaryExpression(new DotExpression(), this.maxExclusive ? "<" : "<=", new Literal(this.max)));
+        }
+        if (expressions.length === 0) {
+            expressions.push(new BinaryExpression(new DotExpression(), "<=", new Literal(Number.POSITIVE_INFINITY)));
+        }
+        return new TypeExpression(joinExpressions(expressions, "&&"));
     }
 
-    static fromType(type: TypeExpression): Expression {
-        return joinExpressions(type.proposition.split("||").map(option => {
+    static fromType(type: Expression): Interval[] {
+        if (type instanceof TypeExpression) {
+            type = type.proposition;
+        }
+        return type.split("||").map(option => {
             let min = new Literal(Number.NEGATIVE_INFINITY);
             let max = new Literal(Number.POSITIVE_INFINITY);
             let minExclusive = false;
@@ -54,7 +61,7 @@ export class Interval extends Expression {
                 }
             })
             return new Interval(min.value, max.value, minExclusive, maxExclusive);
-        }), "||");
+        });
     }
 
 }

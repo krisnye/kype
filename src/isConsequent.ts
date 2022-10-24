@@ -5,7 +5,6 @@ import { Literal } from "./expressions/Literal";
 import { UnaryExpression } from "./expressions/UnaryExpression";
 import { UnaryOperator } from "./expressions/UnaryOperator";
 import { simplify } from "./simplify";
-import { Types } from "./Types";
 import { equals } from "./utility/equals";
 import { splitExpressions } from "./utility/splitExpressions";
 
@@ -168,14 +167,14 @@ export function isConsequent(a: Expression, b: Expression): Maybe {
                             break;
                     }
                 }
-                else if (a.operator === "is" && b.operator === "is") {
-                    // at this point, we KNOW that a.left == b.left and a.right != b.right
-                    return false;
-                }
-                else if (b.operator === "is" && equals(b.right, Types.Number)) {
-                    //  if the right hand side is of type number then just check if left is a number
-                    return a.isLeftNumber();
-                }
+                // else if (a.operator === "is" && b.operator === "is") {
+                //     // at this point, we KNOW that a.left == b.left and a.right != b.right
+                //     return false;
+                // }
+                // else if (b.operator === "is" && equals(b.right, Types.Number)) {
+                //     //  if the right hand side is of type number then just check if left is a number
+                //     return a.isLeftNumber();
+                // }
             }
         }
     }

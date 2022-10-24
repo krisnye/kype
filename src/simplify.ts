@@ -11,8 +11,6 @@ import { joinExpressions } from "./utility/joinExpressions"
 import { Literal } from "./expressions/Literal"
 import { TypeExpression } from "./expressions/TypeExpression"
 import { combineTypes } from "./combineTypes"
-import { TypeOperator } from "./expressions/BinaryOperator"
-import { Types } from "./Types"
 
 function find<T>(items: Iterable<T>, predicate: (value: T) => boolean): T | null {
     for (let item of items) {
@@ -131,7 +129,7 @@ export const simplify = memoize(function(e: Expression): Expression {
                     }
                 }
                 else if (left.operator === ">" && right.operator === "<" && left.right.isLessThan(right.right)) {
-                    return new BinaryExpression(left.left, TypeOperator.is, Types.Number);
+                    return new BinaryExpression(left.left, "<=", new Literal(Number.POSITIVE_INFINITY));
                 }
             }
         }

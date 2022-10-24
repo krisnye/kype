@@ -1,5 +1,4 @@
 
-import { Types } from "../Types";
 import { equals } from "../utility/equals";
 import { compareBinaryOperator } from "./BinaryOperator";
 import { Expression } from "./Expression";
@@ -33,12 +32,12 @@ export class BinaryExpression extends Expression {
             case ">":
             case ">=":
                 return true;
-            case "is":
-                return equals(this.right, Types.Number);
-            case "isnt":
-                if (equals(this.right, Types.Number)) {
-                    return false;
-                }
+            // case "is":
+            //     return equals(this.right, Types.Number);
+            // case "isnt":
+            //     if (equals(this.right, Types.Number)) {
+            //         return false;
+            //     }
             default:
                 return null;
         }

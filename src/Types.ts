@@ -1,6 +1,6 @@
-import { Reference } from "./expressions/Reference";
+// import { Reference } from "./expressions/Reference";
 
-export const Types = {
-    Number: new Reference("Number"),
-    Integer: new Reference("Integer"),
-};
+// export const Types = {
+//     Number: new Reference("Number"),
+//     Integer: new Reference("Integer"),
+// };

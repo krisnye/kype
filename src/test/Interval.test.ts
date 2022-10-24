@@ -2,11 +2,12 @@ import { strict as assert } from "assert";
 import { TypeExpression } from "../expressions/TypeExpression";
 import { Interval } from "../expressions/Interval";
 import { parseExpression } from "./parseExpression";
+import { joinExpressions } from "../utility/joinExpressions";
 
 function testInterval(typeString: string, intervalString: string) {
     const expected = parseExpression(intervalString) as Interval; 
     const t = parseExpression(typeString) as TypeExpression;
-    const actual = Interval.fromType(t);
+    const actual = joinExpressions(Interval.fromType(t), "||");
     assert.deepEqual(actual, expected);
 }
 

@@ -41,7 +41,7 @@ testConsequent("foo > 0 || foo < 10", "foo > 1 || foo < 8", true, true);
 testConsequent("foo(1, 2) && bar(3, 4)", "foo(1, 2)", true, null);
 testConsequent("foo == bar", "foo == baz", null, null);
 testConsequent("foo == 0", "foo == 1", false, false);
-testConsequent("foo is Bar", "foo is Baz", false, false);
-testConsequent("foo is Bar", "foo isnt Bar", false, false);
+// testConsequent("foo is Bar", "foo is Baz", false, false);
+// testConsequent("foo is Bar", "foo isnt Bar", false, false);
 
 testConsequent("foo > 0 || foo < 10", "foo > 1 && foo < 8", null, true);
