@@ -5,7 +5,6 @@ import { combineExpressions } from "./utility/combineExpressions"
 import { equals } from "./utility/equals"
 import { memoize } from "./utility/memoize"
 import { normalize } from "./normalize"
-import { splitExpressions } from "./utility/splitExpressions"
 import { isConsequent } from "./isConsequent"
 import { joinExpressions } from "./utility/joinExpressions"
 import { Literal } from "./expressions/Literal"
@@ -96,19 +95,19 @@ export const simplify = memoize(function(e: Expression): Expression {
             if (isTrue(right) || isFalse(left)) {
                 return right;
             }
-            if (find(splitExpressions(left, "&&"), c => equals(c, right))) {
+            if (find(left.splitExpressions("&&"), c => equals(c, right))) {
                 // A && B || A => A
                 return right;
             }
-            if (find(splitExpressions(right, "&&"), c => equals(c, left))) {
+            if (find(right.splitExpressions("&&"), c => equals(c, left))) {
                 //  A || A && B => A
                 return left;
             }
-            if (find(splitExpressions(left, "||"), c => equals(c, right))) {
+            if (find(left.splitExpressions("||"), c => equals(c, right))) {
                 // (A || B) || A => A || B
                 return left;
             }
-            if (find(splitExpressions(right, "||"), c => equals(c, left))) {
+            if (find(right.splitExpressions("||"), c => equals(c, left))) {
                 //  A || (A && B) => A || B
                 return right;
             }

@@ -1,6 +1,4 @@
 import { strict as assert } from "assert";
-import { invertInterval } from "../combineTypes";
-import { Interval } from "../expressions/Interval";
 import { simplify } from "../simplify";
 import { parseExpression } from "./parseExpression";
 

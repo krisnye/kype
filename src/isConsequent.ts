@@ -6,7 +6,6 @@ import { UnaryExpression } from "./expressions/UnaryExpression";
 import { UnaryOperator } from "./expressions/UnaryOperator";
 import { simplify } from "./simplify";
 import { equals } from "./utility/equals";
-import { splitExpressions } from "./utility/splitExpressions";
 
 type Maybe = true | false | null
 //  a  \  b |  true   false   null
@@ -185,9 +184,9 @@ export function isConsequent(a: Expression, b: Expression): Maybe {
     //  otherwise null (unknown)
     if (b instanceof BinaryExpression && b.operator === LogicalOperator.and || a instanceof BinaryExpression && a.operator === LogicalOperator.and) {
         let allTrue = true
-        for (let bTerm of splitExpressions(b, LogicalOperator.and)) {
+        for (let bTerm of b.splitExpressions(LogicalOperator.and)) {
             let bTermResult: boolean | null = null
-            for (let aTerm of splitExpressions(a, LogicalOperator.and)) {
+            for (let aTerm of a.splitExpressions(LogicalOperator.and)) {
                 let aTermResult = isConsequent(aTerm, bTerm)
                 if (aTermResult === false) {
                     return false

@@ -50,11 +50,15 @@ export class Interval extends Expression {
             let maxExclusive = false;
             option.split("&&").forEach(term => {
                 if (term instanceof BinaryExpression && term.left instanceof DotExpression && term.right instanceof Literal) {
-                    if (term.operator.startsWith(">")) {
+                    if (term.operator === "==") {
+                        min = max = term.right;
+                        minExclusive = maxExclusive = false;
+                    }
+                    else if (term.operator.startsWith(">")) {
                         min = term.right;
                         minExclusive = !term.operator.endsWith("=");
                     }
-                    if (term.operator.startsWith("<")) {
+                    else if (term.operator.startsWith("<")) {
                         max = term.right;
                         maxExclusive = !term.operator.endsWith("=");
                     }

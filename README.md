@@ -2,9 +2,10 @@
 Type Inference Library
 
 ## TODO
-Infer type of an expression based upon other assertions
-Figure out how to type multiplied values
-    (this >= 5) * (this >= 10)
+[x] Infer type of an expression based upon other assertions
+[x] Figure out how to type multiplied values (@ >= 5) * (@ >= 10)
+Infer Type for Member Expression
+
 
 ## Types of Runtime Errors
 
@@ -17,24 +18,12 @@ Figure out how to type multiplied values
 - out of memory
 - null pointer
 
-## Adding Types
-
-    this > 5 && this < 10
-    +
-    this > 20 && this < 30
-    -------------------------
-    this > 5 + this > 20    =>  this > 25
-    this > 5 + this < 30    =>  null
-    this < 10 + this > 20   =>  null
-    this < 10 + this < 30   => this < 40
-    =>
-    this > 25 && this < 40
-
 ##  Indented Syntax
 
 var x = 12
 type Foo = 10 .. 20
 
+//  only meta class for now.
 @Meta()
 class Vector
     x: Number
@@ -48,6 +37,7 @@ function foo(a: Type, b: Type) =>
         for i in 0 .. 20
             return 20
 
+//  struct or some shiz?
 @Meta()
 @Bar()
 function fooWithMeta(
@@ -60,3 +50,34 @@ function fooWithMeta(
         12
         20
         30
+
+##  Compiler
+
+Folders are always lower case
+Files are always upper case
+
+    namespace/
+        Foo.ion
+            # var foo       namespace:Foo.foo
+            # class Foo     namespace:Foo
+            # type Bar      namespace:Foo.Bar
+
+##  Phases
+
+- Parse
+- Separate each declaration
+- Resolve Externals
+- Compile Dependencies
+- Compile Self
+- Store Compiled External Details
+
+##  Recompile
+
+- Reparse changed file
+- Separate each declaration
+- Compare to previously cached values and skip unchanged
+- Resolve externals
+- Compile Dependencies
+- Compile Self
+- Compile Dependents
+- Update Compiled External Details

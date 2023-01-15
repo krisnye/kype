@@ -1,5 +1,4 @@
 
-import { equals } from "../utility/equals";
 import { compareBinaryOperator } from "./BinaryOperator";
 import { Expression } from "./Expression";
 
@@ -15,6 +14,16 @@ export class BinaryExpression extends Expression {
         this.left = left;
         this.operator = operator;
         this.right = right;
+    }
+
+    *splitExpressions(operator: string = "&&"): Iterable<Expression> {
+        if (this.operator === operator) {
+            yield* this.left.splitExpressions(operator);
+            yield* this.right.splitExpressions(operator);
+        }
+        else {
+            yield this;
+        }
     }
 
     public compareSortOrderSameType(b: BinaryExpression): number {
