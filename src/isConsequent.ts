@@ -114,7 +114,12 @@ export function isConsequent(a: Expression, b: Expression): Maybe {
                                 case '!=': return ar != br      // == 0 is != 1
                             }
                             break
-                    }
+                        case '!=':
+                            switch (b.operator) {
+                                case '==': return ar === br ? false : null     // == 0 is == 0
+                            }
+                            break
+                        }
                 }
                 else if (equals(a.right, b.right)) {
                     // we can still analyze some comparisons if we know the both right hand operators are the same.

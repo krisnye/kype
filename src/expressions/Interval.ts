@@ -2,7 +2,7 @@ import { joinExpressions } from "../utility/joinExpressions";
 import { BinaryExpression } from "./BinaryExpression";
 import { DotExpression } from "./DotExpression";
 import { Expression } from "./Expression";
-import { Literal } from "./Literal";
+import { NumberLiteral } from "./NumberLiteral";
 import { TypeExpression } from "./TypeExpression";
 
 export class Interval extends Expression {
@@ -28,13 +28,13 @@ export class Interval extends Expression {
     toType(): TypeExpression {
         let expressions: Expression[] = [];
         if (this.min !== Number.NEGATIVE_INFINITY) {
-            expressions.push(new BinaryExpression(new DotExpression(), this.minExclusive ? ">" : ">=", new Literal(this.min)));
+            expressions.push(new BinaryExpression(new DotExpression(), this.minExclusive ? ">" : ">=", new NumberLiteral(this.min)));
         }
         if (this.max !== Number.POSITIVE_INFINITY) {
-            expressions.push(new BinaryExpression(new DotExpression(), this.maxExclusive ? "<" : "<=", new Literal(this.max)));
+            expressions.push(new BinaryExpression(new DotExpression(), this.maxExclusive ? "<" : "<=", new NumberLiteral(this.max)));
         }
         if (expressions.length === 0) {
-            expressions.push(new BinaryExpression(new DotExpression(), "<=", new Literal(Number.POSITIVE_INFINITY)));
+            expressions.push(new BinaryExpression(new DotExpression(), "<=", new NumberLiteral(Number.POSITIVE_INFINITY)));
         }
         return new TypeExpression(joinExpressions(expressions, "&&"));
     }
@@ -44,12 +44,12 @@ export class Interval extends Expression {
             type = type.proposition;
         }
         return type.split("||").map(option => {
-            let min = new Literal(Number.NEGATIVE_INFINITY);
-            let max = new Literal(Number.POSITIVE_INFINITY);
+            let min = new NumberLiteral(Number.NEGATIVE_INFINITY);
+            let max = new NumberLiteral(Number.POSITIVE_INFINITY);
             let minExclusive = false;
             let maxExclusive = false;
             option.split("&&").forEach(term => {
-                if (term instanceof BinaryExpression && term.left instanceof DotExpression && term.right instanceof Literal) {
+                if (term instanceof BinaryExpression && term.left instanceof DotExpression && term.right instanceof NumberLiteral) {
                     if (term.operator === "==") {
                         min = max = term.right;
                         minExclusive = maxExclusive = false;

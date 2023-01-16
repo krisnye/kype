@@ -7,7 +7,7 @@ import { memoize } from "./utility/memoize"
 import { normalize } from "./normalize"
 import { isConsequent } from "./isConsequent"
 import { joinExpressions } from "./utility/joinExpressions"
-import { Literal } from "./expressions/Literal"
+import { NumberLiteral } from "./expressions/NumberLiteral"
 import { TypeExpression } from "./expressions/TypeExpression"
 import { combineTypes } from "./combineTypes"
 
@@ -21,11 +21,11 @@ function find<T>(items: Iterable<T>, predicate: (value: T) => boolean): T | null
 }
 
 function isTrue(a: Expression) {
-    return a instanceof Literal && a.value !== 0;
+    return a instanceof NumberLiteral && a.value !== 0;
 }
 
 function isFalse(a: Expression) {
-    return a instanceof Literal && a.value === 0;
+    return a instanceof NumberLiteral && a.value === 0;
 }
 
 // A && B || A => A
@@ -66,10 +66,10 @@ export const simplify = memoize(function(e: Expression): Expression {
         }
         if (equals(left, right)) {
             if (e.operator === "==") {
-                return new Literal(1);
+                return new NumberLiteral(1);
             }
             if (e.operator === "!=") {
-                return new Literal(0);
+                return new NumberLiteral(0);
             }
             if (e.operator === "&&" || e.operator == "||" || e.operator === "&" || e.operator == "|") {
                 //  A && A => A
@@ -124,11 +124,11 @@ export const simplify = memoize(function(e: Expression): Expression {
                         (left.operator === ">" && right.operator === "<=") ||
                         (left.operator === ">=" && right.operator === "<=")
                     ) {
-                        return new Literal(1);
+                        return new NumberLiteral(1);
                     }
                 }
                 else if (left.operator === ">" && right.operator === "<" && left.right.isLessThan(right.right)) {
-                    return new BinaryExpression(left.left, "<=", new Literal(Number.POSITIVE_INFINITY));
+                    return new BinaryExpression(left.left, "<=", new NumberLiteral(Number.POSITIVE_INFINITY));
                 }
             }
         }
@@ -159,8 +159,8 @@ export const simplify = memoize(function(e: Expression): Expression {
                 }
             }
         }
-        if (left instanceof Literal && right instanceof Literal) {
-            e = Literal.operation(left, e.operator, right);
+        if (left instanceof NumberLiteral && right instanceof NumberLiteral) {
+            e = NumberLiteral.operation(left, e.operator, right);
         }
         else if (e.left !== left || e.right !== right) {
             e = normalize(new BinaryExpression(left, e.operator, right));

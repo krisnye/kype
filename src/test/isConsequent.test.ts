@@ -45,3 +45,7 @@ testConsequent("foo == 0", "foo == 1", false, false);
 // testConsequent("foo is Bar", "foo isnt Bar", false, false);
 
 testConsequent("foo > 0 || foo < 10", "foo > 1 && foo < 8", null, true);
+
+//  test types with string
+testConsequent(`a == "foo"`, `a == "bar"`, false, false);
+testConsequent(`a == "foo"`, `a != "foo"`, false, false);

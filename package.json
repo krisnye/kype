@@ -1,5 +1,5 @@
 {
-  "name": "kype",
+  "name": "@glas/kype",
   "version": "0.0.1",
   "description": "Type Inference Library",
   "main": "lib/index.js",

@@ -11,7 +11,9 @@ import { joinExpressions } from "./utility/joinExpressions";
 // }
 
 export function invertInterval(i: Interval): Interval[] {
-    let sameSign = Math.sign(i.min) === Math.sign(i.max);
+    let minSign = Math.sign(i.min);
+    let maxSign = Math.sign(i.max);
+    let sameSign = minSign === maxSign;
     let hasZero = !sameSign;
     if (hasZero) {
         return [
@@ -48,7 +50,7 @@ function multiplyIntervals(a: Interval, b: Interval) {
     return new Interval(min[0], max[0], min[1], max[1]).toType();
 }
 
-export function combineTypes(left: TypeExpression, operator: string, right: TypeExpression) {
+export function combineTypes(left: TypeExpression, operator: string, right: TypeExpression): TypeExpression {
     switch (operator) {
         case LogicalOperator.and:
         case LogicalOperator.or:
@@ -60,17 +62,17 @@ export function combineTypes(left: TypeExpression, operator: string, right: Type
                 foreachIntervalPair(left, right, (a, b) => {
                     return new Interval(a.min + b.min, a.max + b.max, a.minExclusive || b.minExclusive, a.maxExclusive || b.maxExclusive).toType();
                 })
-            )
+            ) as TypeExpression;
         case MathOperator.subtraction:
             return simplify(
                 foreachIntervalPair(left, right, (a, b) => {
                     return new Interval(a.min - b.max, a.max - b.min, a.minExclusive || b.minExclusive, a.maxExclusive || b.maxExclusive).toType();
                 })
-            )
+            ) as TypeExpression;
         case MathOperator.multiplication:
             return simplify(
                 foreachIntervalPair(left, right, multiplyIntervals)
-            )
+            ) as TypeExpression;
         case MathOperator.division:
             return simplify(
                 foreachIntervalPair(left, right, (a, b) => {
@@ -78,7 +80,7 @@ export function combineTypes(left: TypeExpression, operator: string, right: Type
                         return multiplyIntervals(a, ib as Interval);
                     }), "||");
                 })
-            );
+            ) as TypeExpression;
         default:
             throw new Error(`Could not combine types: ${left} ${operator} ${right}`);
     }

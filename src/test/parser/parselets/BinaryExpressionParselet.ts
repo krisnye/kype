@@ -5,7 +5,7 @@ import { BinaryExpression } from "../../../expressions/BinaryExpression";
 import { Expression } from "../../../expressions/Expression";
 import { Token } from "../Token";
 import { MemberExpression } from "../../../expressions/MemberExpression";
-import { Literal } from "../../../expressions/Literal";
+import { NumberLiteral } from "../../../expressions/NumberLiteral";
 import { Interval } from "../../../expressions/Interval";
 
 export class BinaryExpressionParselet extends InfixParselet {
@@ -24,8 +24,8 @@ export class BinaryExpressionParselet extends InfixParselet {
         let right = this.parseRight(p, operator);
 
         if (operator.source.indexOf("..") >= 0) {
-            let min = left as Literal;
-            let max = right as Literal;
+            let min = left as NumberLiteral;
+            let max = right as NumberLiteral;
             let minExclusive = operator.source.startsWith("<");
             let maxExclusive = operator.source.endsWith("<");
             return new Interval(min.value, max.value, minExclusive, maxExclusive);

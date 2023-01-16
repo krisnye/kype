@@ -4,7 +4,7 @@ import { UnaryExpression } from "../../../expressions/UnaryExpression";
 import { Expression } from "../../../expressions/Expression";
 import { Token } from "../Token";
 import { PrefixParselet } from "../PrefixParselet";
-import { Literal } from "../../../expressions/Literal";
+import { NumberLiteral } from "../../../expressions/NumberLiteral";
 
 export class PrefixOperatorParselet extends PrefixParselet {
 
@@ -23,12 +23,12 @@ export class PrefixOperatorParselet extends PrefixParselet {
 
     parse(p: Parser, operator: Token): Expression {
         let argument = this.parseArgument(p, operator);
-        if (argument instanceof Literal) {
+        if (argument instanceof NumberLiteral) {
             if (operator.value === "+") {
                 return argument;
             }
             if (operator.value === "-") {
-                return new Literal( - argument.value);
+                return new NumberLiteral( - argument.value);
             }
         }
         return new UnaryExpression(

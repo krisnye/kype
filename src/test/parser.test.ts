@@ -1,7 +1,7 @@
 import { strict as assert } from "assert";
 import { BinaryExpression } from "../expressions/BinaryExpression";
 import { CallExpresssion } from "../expressions/CallExpression";
-import { Literal } from "../expressions/Literal";
+import { NumberLiteral } from "../expressions/NumberLiteral";
 import { Reference } from "../expressions/Reference";
 import { parseExpression } from "./parseExpression";
 
@@ -11,9 +11,9 @@ assert.deepEqual(
         new Reference("x"),
         "+",
         new BinaryExpression(
-            new Literal(10),
+            new NumberLiteral(10),
             "*",
-            new Literal(2)
+            new NumberLiteral(2)
         )
     )
 )
@@ -22,6 +22,6 @@ assert.deepEqual(
     parseExpression("foo(1, 2, 3)"),
     new CallExpresssion(
         new Reference("foo"),
-        [new Literal(1), new Literal(2), new Literal(3)]
+        [new NumberLiteral(1), new NumberLiteral(2), new NumberLiteral(3)]
     )
 )

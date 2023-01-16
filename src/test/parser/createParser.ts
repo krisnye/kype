@@ -6,21 +6,23 @@ import { TerminalParselet } from "./parselets/TerminalParselet";
 import { GroupParselet } from "./parselets/GroupParselet";
 import { CallParselet } from "./parselets/CallParselet";
 import { Reference } from "../../expressions/Reference";
-import { Literal } from "../../expressions/Literal";
+import { NumberLiteral } from "../../expressions/NumberLiteral";
 import { DotExpression } from "../../expressions/DotExpression";
+import { StringLiteral } from "../../expressions";
 
 export function createParser() {
     return new Parser({
         Id: new TerminalParselet(({ value }) => {
             switch (value) {
                 case "@": return new DotExpression();
-                case "POS_INFINITY": return new Literal(Number.POSITIVE_INFINITY);
-                case "NEG_INFINITY": return new Literal(Number.NEGATIVE_INFINITY);
+                case "POS_INFINITY": return new NumberLiteral(Number.POSITIVE_INFINITY);
+                case "NEG_INFINITY": return new NumberLiteral(Number.NEGATIVE_INFINITY);
                 default: return new Reference(value);
             }
         }),
-        Number: new TerminalParselet((token) => new Literal(eval(token.source))),
-        Integer: new TerminalParselet((token) => new Literal(eval(token.source))),
+        String: new TerminalParselet((token) => new StringLiteral(eval(token.source))),
+        Number: new TerminalParselet((token) => new NumberLiteral(eval(token.source))),        
+        Integer: new TerminalParselet((token) => new NumberLiteral(eval(token.source))),
         Operator: new PrefixOperatorParselet(),
         OpenParen: new GroupParselet("CloseParen", true),
         OpenBracket: new GroupParselet("CloseBracket", true),
