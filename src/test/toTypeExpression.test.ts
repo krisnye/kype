@@ -11,7 +11,7 @@ function testToType(allString: string, expectedString: string, toTypeString = "x
     assert(equals(type, expected), `\n${all} => ${toType}\n    expected: ${expected}\n    actual  : ${type}\n`);
 }
 
-testToType("12 > x", "{ @ < 12 }");
-testToType("12 > x && 12 > y && 12 > z && 5 < x", "{ @ > 5 && @ < 12 }");
-testToType("12 > x && foo(x) > y && 12 > z && 5 < x", "{ @ > 5 && @ < 12 && foo(@) > y }");
-testToType("foo(x, 1) && foo(y, 2) && foo(z, 3)", "{ foo(@, 1) }");
+testToType("12.0 > x", "{ @ < 12.0 }");
+testToType("12.0 > x && 12.0 > y && 12.0 > z && 5.0 < x", "{ @ > 5.0 && @ < 12.0 }");
+testToType("12.0 > x && foo(x) > y && 12.0 > z && 5.0 < x", "{ @ > 5.0 && @ < 12.0 && foo(@) > y }");
+testToType("foo(x, 1.0) && foo(y, 2.0) && foo(z, 3.0)", "{ foo(@, 1.0) }");

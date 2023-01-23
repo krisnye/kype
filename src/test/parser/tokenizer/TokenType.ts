@@ -59,10 +59,10 @@ export const tokenTypes = {
     CloseBracket: new TokenType("CloseBracket", /^\]/),
     OpenBrace: new TokenType("OpenBrace", /^\{/),
     CloseBrace: new TokenType("CloseBrace", /^\}/),
-    Number: new TokenType("Number", /^[0-9]*\.[0-9]+(e[+-]?[0-9]+)?/, { value: JSON.parse }),
-    Integer: new TokenType("Integer", /^([1-9][0-9]*|0x[0-9]+|0\b)/, { value: JSON.parse }),
+    Number: new TokenType("Number", /^[0-9]*\.[0-9]+(e[+-]?[0-9]+)?/),
+    Integer: new TokenType("Integer", /^([1-9][0-9]*|0x[0-9]+|0\b)/),
     OutlineString: new TokenType("OutlineString", /^""/),
-    String: new TokenType("String", /^"([^"\\]|\\.)*"/, { value: JSON.parse }),
+    String: new TokenType("String", /^"([^"\\]|\\.)*"/),
     // Operator has to come after Number/Integer so an adjacent - or + binds to literal.
     Operator: new TokenType("Operator", /^(\b<?\.\.<?\b|\bisnt\b|\bis\b|[\=\+\-\*\&\^\%\!\~\/\.\:\;\?\,\<\>\|\&:]+)/i),
     //  Id has to come after Operator because of operator 'void'

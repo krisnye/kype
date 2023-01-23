@@ -9,20 +9,20 @@ function testNormalize(propositionString: string, normalizedString: string) {
     assert.equal(normalizedP.toString(), n.toString());
 }
 
-testNormalize("(foo || 10) + (foo && 10)", "(foo && 10) + (foo || 10)")
-testNormalize("(foo && 10) && (foo || 20)", "(foo || 20) && foo && 10")
-testNormalize("(foo || 10) && (foo && 10)", "(foo || 10) && foo && 10")
-testNormalize("10 == foo", "foo == 10")
+testNormalize("(foo || 10.0) + (foo && 10.0)", "(foo && 10.0) + (foo || 10.0)")
+testNormalize("(foo && 10.0) && (foo || 20.0)", "(foo || 20.0) && foo && 10.0")
+testNormalize("(foo || 10.0) && (foo && 10.0)", "(foo || 10.0) && foo && 10.0")
+testNormalize("10.0 == foo", "foo == 10.0")
 testNormalize("foo == bar", "bar == foo")
 testNormalize("foo != bar", "bar != foo")
 testNormalize("foo >= bar", "bar <= foo")
 testNormalize("foo > bar", "bar < foo")
 testNormalize("foo <= bar", "bar >= foo")
 testNormalize("foo < bar", "bar > foo")
-testNormalize("-4 < x", "x > -4")
+testNormalize("-4.0 < x", "x > -4.0")
 testNormalize(
-    "x < 120 && x < 20 && x < 112 && 12 > x && 15 > x && -4 > x",
-    "x < -4 && x < 12 && x < 15 && x < 20 && x < 112 && x < 120"
+    "x < 120.0 && x < 20.0 && x < 112.0 && 12.0 > x && 15.0 > x && -4.0 > x",
+    "x < -4.0 && x < 12.0 && x < 15.0 && x < 20.0 && x < 112.0 && x < 120.0"
 )
 
-testNormalize("foo < @ && bar > @ && 14 > @", "@ < bar && @ > foo && @ < 14");
+testNormalize("foo < @ && bar > @ && 14.0 > @", "@ < bar && @ > foo && @ < 14.0");

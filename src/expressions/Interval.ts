@@ -5,15 +5,23 @@ import { Expression } from "./Expression";
 import { NumberLiteral } from "./NumberLiteral";
 import { TypeExpression } from "./TypeExpression";
 
-export class Interval extends Expression {
+export function isFloatInterval(value: any): value is Interval<number> {
+    return typeof value?.min === "number";
+}
+
+export function isIntegerInterval(value: any): value is Interval<number> {
+    return typeof value?.min === "bigint";
+}
+
+export class Interval<T extends number | bigint> extends Expression {
 
     get sortOrder() { return -10; }
-    min: number;
-    max: number;
+    min: T;
+    max: T;
     minExclusive: boolean;
     maxExclusive: boolean;
 
-    constructor(min: number, max: number, minExclusive = false, maxExclusive = false) {
+    constructor(min: T, max: T, minExclusive = false, maxExclusive = false) {
         super();
         this.min = min;
         this.max = max;
@@ -39,7 +47,7 @@ export class Interval extends Expression {
         return new TypeExpression(joinExpressions(expressions, "&&"));
     }
 
-    static fromType(type: Expression): Interval[] {
+    static fromType(type: Expression): Interval<number | bigint>[] {
         if (type instanceof TypeExpression) {
             type = type.proposition;
         }

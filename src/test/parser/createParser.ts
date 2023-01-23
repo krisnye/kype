@@ -21,8 +21,9 @@ export function createParser() {
             }
         }),
         String: new TerminalParselet((token) => new StringLiteral(eval(token.source))),
-        Number: new TerminalParselet((token) => new NumberLiteral(eval(token.source))),        
-        Integer: new TerminalParselet((token) => new NumberLiteral(eval(token.source))),
+        Number: new TerminalParselet((token) => new NumberLiteral(eval(token.source))),
+        //  interpret integers as bigints
+        Integer: new TerminalParselet((token) => new NumberLiteral(eval(`${token.source}n`))),
         Operator: new PrefixOperatorParselet(),
         OpenParen: new GroupParselet("CloseParen", true),
         OpenBracket: new GroupParselet("CloseBracket", true),

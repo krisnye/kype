@@ -2,7 +2,7 @@
 import { Expression } from "./Expression";
 import { Literal } from "./Literal";
 
-export class NumberLiteral extends Literal<number> {
+export class NumberLiteral extends Literal<number | bigint> {
 
     get sortOrder() { return 10; }
 
@@ -15,7 +15,7 @@ export class NumberLiteral extends Literal<number> {
     }
 
     public compareSortOrderSameType(b: NumberLiteral): number {
-        return this.value - b.value;
+        return (this.value as any) - (b.value as any);
     }
 
     isLessThan(b: Expression, orEqual = false): boolean | null {

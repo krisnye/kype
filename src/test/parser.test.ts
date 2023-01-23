@@ -11,6 +11,27 @@ assert.deepEqual(
         new Reference("x"),
         "+",
         new BinaryExpression(
+            new NumberLiteral(10n),
+            "*",
+            new NumberLiteral(2n)
+        )
+    )
+)
+
+assert.deepEqual(
+    parseExpression("foo(1, 2, 3)"),
+    new CallExpresssion(
+        new Reference("foo"),
+        [new NumberLiteral(1n), new NumberLiteral(2n), new NumberLiteral(3n)]
+    )
+)
+
+assert.deepEqual(
+    parseExpression("x + 10.0 * 2.0"),
+    new BinaryExpression(
+        new Reference("x"),
+        "+",
+        new BinaryExpression(
             new NumberLiteral(10),
             "*",
             new NumberLiteral(2)
@@ -19,7 +40,7 @@ assert.deepEqual(
 )
 
 assert.deepEqual(
-    parseExpression("foo(1, 2, 3)"),
+    parseExpression("foo(1.0, 2.0, 3.0)"),
     new CallExpresssion(
         new Reference("foo"),
         [new NumberLiteral(1), new NumberLiteral(2), new NumberLiteral(3)]

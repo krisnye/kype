@@ -1,7 +1,7 @@
 import { BinaryExpression } from "./expressions/BinaryExpression";
 import { LogicalOperator, MathOperator } from "./expressions/BinaryOperator";
 import { Expression } from "./expressions/Expression";
-import { Interval } from "./expressions/Interval";
+import { Interval, isFloatInterval } from "./expressions/Interval";
 import { TypeExpression } from "./expressions/TypeExpression";
 import { simplify } from "./simplify";
 import { joinExpressions } from "./utility/joinExpressions";
@@ -10,7 +10,7 @@ import { joinExpressions } from "./utility/joinExpressions";
 //     return new TypeExpression(joinExpressions(type.proposition.split("||").map(term => Interval.fromType(term)).flat(), "||"));
 // }
 
-export function invertInterval(i: Interval): Interval[] {
+export function invertInterval(i: Interval<number>): Interval<number>[] {
     let minSign = Math.sign(i.min);
     let maxSign = Math.sign(i.max);
     let sameSign = minSign === maxSign;
@@ -26,7 +26,7 @@ export function invertInterval(i: Interval): Interval[] {
     }
 }
 
-function multiplyIntervals(a: Interval, b: Interval) {
+function multiplyIntervals<T extends number | bigint>(a: Interval<T>, b: Interval<T>) {
     //  we track all possible edge values and whether or not they are exclusive
     let values: [number, boolean][] = [
         [a.min * b.min, a.minExclusive || b.minExclusive],
@@ -59,13 +59,13 @@ export function combineTypes(left: TypeExpression, operator: string, right: Type
             );
         case MathOperator.addition:
             return simplify(
-                foreachIntervalPair(left, right, (a, b) => {
+                foreachIntervalPair<number>(left, right, (a, b) => {
                     return new Interval(a.min + b.min, a.max + b.max, a.minExclusive || b.minExclusive, a.maxExclusive || b.maxExclusive).toType();
                 })
             ) as TypeExpression;
         case MathOperator.subtraction:
             return simplify(
-                foreachIntervalPair(left, right, (a, b) => {
+                foreachIntervalPair<number>(left, right, (a, b) => {
                     return new Interval(a.min - b.max, a.max - b.min, a.minExclusive || b.minExclusive, a.maxExclusive || b.maxExclusive).toType();
                 })
             ) as TypeExpression;
@@ -76,9 +76,14 @@ export function combineTypes(left: TypeExpression, operator: string, right: Type
         case MathOperator.division:
             return simplify(
                 foreachIntervalPair(left, right, (a, b) => {
-                    return joinExpressions(invertInterval(b).map(ib => {
-                        return multiplyIntervals(a, ib as Interval);
-                    }), "||");
+                    if (isFloatInterval(b)) {
+                        return joinExpressions(invertInterval(b).map(ib => {
+                            return multiplyIntervals(a, ib as Interval<number>);
+                        }), "||");
+                    }
+                    else {
+                        throw new Error(`TODO: Integer Division not implemented yet`);
+                    }
                 })
             ) as TypeExpression;
         default:
@@ -86,9 +91,9 @@ export function combineTypes(left: TypeExpression, operator: string, right: Type
     }
 }
 
-function foreachIntervalPair(a: TypeExpression, b: TypeExpression, callback: (a: Interval, b: Interval) => Expression | null): Expression {
+function foreachIntervalPair<T extends number | bigint>(a: TypeExpression, b: TypeExpression, callback: (a: Interval<T>, b: Interval<T>) => Expression | null): Expression {
     return foreachSplitRejoin(joinExpressions(Interval.fromType(a), "||"), joinExpressions(Interval.fromType(b), "||"), "||", (a, b) => {
-        return callback(a as Interval, b as Interval);
+        return callback(a as Interval<T>, b as Interval<T>);
     })
 }
 

@@ -11,18 +11,18 @@ function testConsequent(astring: string, bstring: string, ab_expected: true | fa
     assert.equal(ba_actual, ba_expected, `\n${b} => ${a}, expected ${ba_expected}, actual: ${ba_actual}`);
 }
 
-testConsequent("foo > 1", "foo > 0", true, null);
-testConsequent("foo < 1", "foo < 2", true, null);
-testConsequent("foo >= 1", "foo >= 0", true, null);
-testConsequent("foo <= 1", "foo <= 2", true, null);
-testConsequent("foo > 0", "foo > 0", true, true);
-testConsequent("foo > 0", "foo < 0", false, false);
-testConsequent("foo >= 0", "foo < 0", false, false);
-testConsequent("foo >= 0", "foo <= 0", null, null);
-testConsequent("foo < 0", "foo != 0", true, null);
-testConsequent("foo > 0", "foo != 0", true, null);
-testConsequent("foo == 0", "foo <= 0", true, null);
-testConsequent("foo == 0", "foo >= 0", true, null);
+testConsequent("foo > 1.0", "foo > 0.0", true, null);
+testConsequent("foo < 1.0", "foo < 2.0", true, null);
+testConsequent("foo >= 1.0", "foo >= 0.0", true, null);
+testConsequent("foo <= 1.0", "foo <= 2.0", true, null);
+testConsequent("foo > 0.0", "foo > 0.0", true, true);
+testConsequent("foo > 0.0", "foo < 0.0", false, false);
+testConsequent("foo >= 0.0", "foo < 0.0", false, false);
+testConsequent("foo >= 0.0", "foo <= 0.0", null, null);
+testConsequent("foo < 0.0", "foo != 0.0", true, null);
+testConsequent("foo > 0.0", "foo != 0.0", true, null);
+testConsequent("foo == 0.0", "foo <= 0.0", true, null);
+testConsequent("foo == 0.0", "foo >= 0.0", true, null);
 
 testConsequent("foo == x", "foo >= x", true, null);
 testConsequent("foo == x", "foo <= x", true, null);
@@ -31,20 +31,20 @@ testConsequent("foo == x", "foo < x", false, false);
 testConsequent("foo > x", "foo >= x", true, null);
 testConsequent("foo < x", "foo <= x", true, null);
 testConsequent("foo < x", "foo != x", true, null);
-testConsequent("foo > 0", "foo != 0", true, null);
+testConsequent("foo > 0.0", "foo != 0.0", true, null);
 
 testConsequent("foo < x || foo > x", "foo != x", true, true);
 
-testConsequent("foo > 0 && foo < 10", "foo > 1 && foo < 8", null, true);
+testConsequent("foo > 0.0 && foo < 100.0", "foo > 1.0 && foo < 8.0", null, true);
 //  these both simplify to foo is Number
-testConsequent("foo > 0 || foo < 10", "foo > 1 || foo < 8", true, true);
-testConsequent("foo(1, 2) && bar(3, 4)", "foo(1, 2)", true, null);
+testConsequent("foo > 0.0 || foo < 100.0", "foo > 1.0 || foo < 8.0", true, true);
+testConsequent("foo(1.0, 2.0) && bar(3, 4)", "foo(1.0, 2.0)", true, null);
 testConsequent("foo == bar", "foo == baz", null, null);
-testConsequent("foo == 0", "foo == 1", false, false);
+testConsequent("foo == 0.0", "foo == 1.0", false, false);
 // testConsequent("foo is Bar", "foo is Baz", false, false);
 // testConsequent("foo is Bar", "foo isnt Bar", false, false);
 
-testConsequent("foo > 0 || foo < 10", "foo > 1 && foo < 8", null, true);
+testConsequent("foo > 0.0 || foo < 100.0", "foo > 1.0 && foo < 8.0", null, true);
 
 //  test types with string
 testConsequent(`a == "foo"`, `a == "bar"`, false, false);
