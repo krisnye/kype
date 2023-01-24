@@ -53,24 +53,44 @@ testSimplify("NEG_INFINITY - 12.0", "NEG_INFINITY");
 testSimplify("NEG_INFINITY * 12.0", "NEG_INFINITY");
 testSimplify("NEG_INFINITY / 12.0", "NEG_INFINITY");
 
+//  test simplifying float types
+testSimplify("{ @ > 0.0 } && { @ < 10.0 }", "{ @ > 0.0 && @ < 10.0 }");
+testSimplify("{ @ < 10.0 } || { 0.0 < @ }", "{ @ <= POS_INFINITY }");
+testSimplify("{ @ >= 0.0 } && { @ <= 0.0 }", "{ @ == 0.0 }");
+testSimplify("{ @ < 0.0 } || { @ > 0.0 }", "{ @ != 0.0 }");
+
+//  type float addition
+testSimplify("{ @ > 0.0 && @ < 1.0 } + { @ > 2.0 && @ < 3.0 }", "{ @ > 2.0 && @ < 4.0 }");
+//  type float subtraction
+testSimplify("{ @ > 0.0 && @ < 1.0 } - { @ > 2.0 && @ < 3.0 }", "{ @ > -3.0 && @ < -1.0 }");
+//  type float multiplication
+testSimplify("{ @ > 0.0 && @ < 1.0 } * { @ > 2.0 && @ < 3.0 }", "{ @ > 0.0 && @ < 3.0 }");
+testSimplify("{ @ >= 0.0 && @ < 1.0 } * { @ > 2.0 && @ < 3.0 }", "{ @ > 0.0 && @ < 3.0 }");
+testSimplify("{ @ >= 0.0 && @ < 1.0 } * { @ >= 2.0 && @ < 3.0 }", "{ @ >= 0.0 && @ < 3.0 }");
+testSimplify("{ @ >= 0.0 && @ < 1.0 } * { @ > 2.0 && @ <= 3.0 }", "{ @ >= 0.0 && @ < 3.0 }");
+testSimplify("{ @ >= -10.0 && @ < 10.0 } * { @ >= -5.0 && @ <= 3.0 }", "{ @ > -50.0 && @ <= 50.0 }");
+//  test float division
+testSimplify("{ @ >= 10.0 && @ <= 20.0 } / { @ >= 5.0 && @ <= 10.0 }", "{ @ >= 1.0 && @ <= 4.0 }");
+testSimplify("{ @ > -10.0 && @ <= 20.0 } / { @ >= 5.0 && @ <= 10.0 }", "{ @ > -2.0 && @ <= 4.0 }");
+testSimplify("{ @ >= 10.0 && @ <= 20.0 } / { @ >= -5.0 && @ <= 10.0 }", "{ @ <= -2.0 || @ >= 1.0 }");
+
 //  test simplifying types
 testSimplify("{ @ > 0.0 } && { @ < 10.0 }", "{ @ > 0.0 && @ < 10.0 }");
 testSimplify("{ @ < 10.0 } || { 0.0 < @ }", "{ @ <= POS_INFINITY }");
 testSimplify("{ @ >= 0.0 } && { @ <= 0.0 }", "{ @ == 0.0 }");
 testSimplify("{ @ < 0.0 } || { @ > 0.0 }", "{ @ != 0.0 }");
 
-//  type addition
-testSimplify("{ @ > 0.0 && @ < 1.0 } + { @ > 2.0 && @ < 3.0 }", "{ @ > 2.0 && @ < 4.0 }");
-//  type subtraction
-testSimplify("{ @ > 0.0 && @ < 1.0 } - { @ > 2.0 && @ < 3.0 }", "{ @ > -3.0 && @ < -1.0 }");
-//  type multiplication
-testSimplify("{ @ > 0.0 && @ < 1.0 } * { @ > 2.0 && @ < 3.0 }", "{ @ > 0.0 && @ < 3.0 }");
-testSimplify("{ @ >= 0.0 && @ < 1.0 } * { @ > 2.0 && @ < 3.0 }", "{ @ > 0.0 && @ < 3.0 }");
-testSimplify("{ @ >= 0.0 && @ < 1.0 } * { @ >= 2.0 && @ < 3.0 }", "{ @ >= 0.0 && @ < 3.0 }");
-testSimplify("{ @ >= 0.0 && @ < 1.0 } * { @ > 2.0 && @ <= 3.0 }", "{ @ >= 0.0 && @ < 3.0 }");
-testSimplify("{ @ >= -10.0 && @ < 10.0 } * { @ >= -5.0 && @ <= 3.0 }", "{ @ > -50.0 && @ <= 50.0 }");
-//  test division
-testSimplify("{ @ >= 10.0 && @ <= 20.0 } / { @ >= 5.0 && @ <= 10.0 }", "{ @ >= 1.0 && @ <= 4.0 }");
-testSimplify("{ @ > -10.0 && @ <= 20.0 } / { @ >= 5.0 && @ <= 10.0 }", "{ @ > -2.0 && @ <= 4.0 }");
-testSimplify("{ @ >= 10.0 && @ <= 20.0 } / { @ >= -5.0 && @ <= 10.0 }", "{ @ <= -2.0 || @ >= 1.0 }");
+//  type integer addition
+testSimplify("{ @ > 0 && @ < 1 } + { @ > 2 && @ < 3 }", "{ @ > 2 && @ < 4 }");
+//  type integer subtraction
+testSimplify("{ @ > 0 && @ < 1 } - { @ > 2 && @ < 3 }", "{ @ > -3 && @ < -1 }");
+//  type integer multiplication
+testSimplify("{ @ > 0 && @ < 1 } * { @ > 2 && @ < 3 }", "{ @ > 0 && @ < 3 }");
+testSimplify("{ @ >= 0 && @ < 1 } * { @ > 2 && @ < 3 }", "{ @ > 0 && @ < 3 }");
+testSimplify("{ @ >= 0 && @ < 1 } * { @ >= 2 && @ < 3 }", "{ @ >= 0 && @ < 3 }");
+testSimplify("{ @ >= 0 && @ < 1 } * { @ > 2 && @ <= 3 }", "{ @ >= 0 && @ < 3 }");
+testSimplify("{ @ >= -10 && @ < 10 } * { @ >= -5 && @ <= 3 }", "{ @ > -50 && @ <= 50 }");
+//  test integer division
+testSimplify("{ @ >= 10 && @ <= 20 } / { @ >= 5 && @ <= 10 }", "{ @ >= 1 && @ <= 4 }");
+testSimplify("{ @ > -10 && @ <= 20 } / { @ >= 5 && @ <= 10 }", "{ @ > -2 && @ <= 4 }");
 

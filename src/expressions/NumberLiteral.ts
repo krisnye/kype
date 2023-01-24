@@ -15,7 +15,7 @@ export class NumberLiteral extends Literal<number | bigint> {
     }
 
     public compareSortOrderSameType(b: NumberLiteral): number {
-        return (this.value as any) - (b.value as any);
+        return this.value < b.value ? -1 : this.value > b.value ? +1 : 0;
     }
 
     isLessThan(b: Expression, orEqual = false): boolean | null {

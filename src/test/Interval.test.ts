@@ -11,6 +11,7 @@ function testInterval(typeString: string, intervalString: string) {
     assert.deepEqual(actual, expected);
 }
 
+//  test float based ranges
 testInterval("{ @ > 10.0 && @ < 20.0 }", "10.0 <..< 20.0");
 testInterval("{ @ >= 10.0 && @ <= 20.0 }", "10.0 .. 20.0");
 testInterval("{ @ > 10.0 && @ <= 20.0 }", "10.0 <.. 20.0");
@@ -22,3 +23,6 @@ testInterval("{ @ > NEG_INFINITY && @ < POS_INFINITY }", "NEG_INFINITY .. POS_IN
 testInterval("{ @ >= NEG_INFINITY && @ <= POS_INFINITY }", "NEG_INFINITY .. POS_INFINITY");
 
 testInterval("{ @ == 10.0 }", "10.0 .. 10.0");
+
+//  test big integer based ranges
+testInterval("{ @ > 10 && @ < 20 }", "10 <..< 20");

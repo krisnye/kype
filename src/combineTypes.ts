@@ -10,9 +10,13 @@ import { joinExpressions } from "./utility/joinExpressions";
 //     return new TypeExpression(joinExpressions(type.proposition.split("||").map(term => Interval.fromType(term)).flat(), "||"));
 // }
 
+export function sign(a: number | bigint) {
+    return a < 0 ? -1 : a > 0 ? +1 : 0;
+}
+
 export function invertInterval(i: Interval<number>): Interval<number>[] {
-    let minSign = Math.sign(i.min);
-    let maxSign = Math.sign(i.max);
+    let minSign = sign(i.min);
+    let maxSign = sign(i.max);
     let sameSign = minSign === maxSign;
     let hasZero = !sameSign;
     if (hasZero) {
@@ -26,13 +30,13 @@ export function invertInterval(i: Interval<number>): Interval<number>[] {
     }
 }
 
-function multiplyIntervals<T extends number | bigint>(a: Interval<T>, b: Interval<T>) {
+function combineIntervals<T extends number | bigint>(a: Interval<T>, b: Interval<T>, operation: (a: T, b: T) => T) {
     //  we track all possible edge values and whether or not they are exclusive
-    let values: [number, boolean][] = [
-        [a.min * b.min, a.minExclusive || b.minExclusive],
-        [a.min * b.max, a.minExclusive || b.maxExclusive],
-        [a.max * b.min, a.maxExclusive || b.minExclusive],
-        [a.max * b.max, a.maxExclusive || b.maxExclusive],
+    let values: [T, boolean][] = [
+        [operation(a.min, b.min), a.minExclusive || b.minExclusive],
+        [operation(a.min, b.max), a.minExclusive || b.maxExclusive],
+        [operation(a.max, b.min), a.maxExclusive || b.minExclusive],
+        [operation(a.max, b.max), a.maxExclusive || b.maxExclusive],
     ];
     //  then we loop and find the min/max values along with whether or not they are exclusive
     let min = values[0];
@@ -48,6 +52,14 @@ function multiplyIntervals<T extends number | bigint>(a: Interval<T>, b: Interva
     }
     //  finally create the new interval with correct values and exclusivity
     return new Interval(min[0], max[0], min[1], max[1]).toType();
+}
+
+function multiplyIntervals<T extends number | bigint>(a: Interval<T>, b: Interval<T>) {
+    return combineIntervals<T>(a, b, (a, b) => a * b as T);
+}
+
+function divideIntervals<T extends number | bigint>(a: Interval<T>, b: Interval<T>) {
+    return combineIntervals<T>(a, b, (a, b) => a / b as T);
 }
 
 export function combineTypes(left: TypeExpression, operator: string, right: TypeExpression): TypeExpression {
@@ -82,7 +94,7 @@ export function combineTypes(left: TypeExpression, operator: string, right: Type
                         }), "||");
                     }
                     else {
-                        throw new Error(`TODO: Integer Division not implemented yet`);
+                        return divideIntervals(a, b);
                     }
                 })
             ) as TypeExpression;
