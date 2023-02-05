@@ -2,6 +2,17 @@
 import { Expression } from "./Expression";
 import { Literal } from "./Literal";
 
+type IntegerLiteral = NumberLiteral & { value: bigint };
+type FloatLiteral = NumberLiteral & { value: bigint };
+
+export function isIntegerLiteral(e: any): e is IntegerLiteral {
+    return e instanceof NumberLiteral && typeof e.value === "bigint";
+}
+
+export function isFloatLiteral(e: any): e is FloatLiteral {
+    return e instanceof NumberLiteral && typeof e.value === "bigint";
+}
+
 export class NumberLiteral extends Literal<number | bigint> {
 
     get sortOrder() { return 10; }

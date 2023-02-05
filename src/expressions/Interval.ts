@@ -27,6 +27,18 @@ export class Interval<T extends number | bigint> extends Expression {
         this.max = max;
         this.minExclusive = minExclusive && min !== Number.NEGATIVE_INFINITY;
         this.maxExclusive = maxExclusive && max !== Number.POSITIVE_INFINITY;
+
+        // normalize if this is integer based interval to always be inclusive of outer ranges.
+        if (isIntegerInterval(this)) {
+            if (this.minExclusive) {
+                this.min++;
+                this.minExclusive = false;
+            }
+            if (this.maxExclusive) {
+                this.max--;
+                this.maxExclusive = false;
+            }
+        }
     }
 
     toStringInternal() {

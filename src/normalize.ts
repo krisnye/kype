@@ -1,4 +1,5 @@
 
+import { isIntegerLiteral, NumberLiteral } from "./expressions";
 import { BinaryExpression } from "./expressions/BinaryExpression";
 import { BinaryOperator, ComparisonOperator, LogicalOperator, MathOperator } from "./expressions/BinaryOperator";
 import type { Expression } from "./expressions/Expression"
@@ -42,6 +43,16 @@ export const normalize = memoize(function(e: Expression): Expression {
         if (canSwap && compareSortOrder(left, right) > 0) {
             [left, right] = [right, left]
             operator = reflectOperators[operator]
+        }
+        if (isIntegerLiteral(right)) {
+            if (operator === "<") {
+                operator = "<=";
+                right = new NumberLiteral(right.value - 1n);
+            }
+            else if (operator === ">") {
+                operator = ">=";
+                right = new NumberLiteral(right.value + 1n);
+            }
         }
         if (left !== e.left || right !== e.right || operator !== e.operator) {
             e = new BinaryExpression(left, operator, right);

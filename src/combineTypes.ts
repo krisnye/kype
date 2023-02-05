@@ -1,17 +1,48 @@
 import { BinaryExpression } from "./expressions/BinaryExpression";
 import { LogicalOperator, MathOperator } from "./expressions/BinaryOperator";
 import { Expression } from "./expressions/Expression";
-import { Interval, isFloatInterval } from "./expressions/Interval";
+import { Interval, isFloatInterval, isIntegerInterval } from "./expressions/Interval";
 import { TypeExpression } from "./expressions/TypeExpression";
 import { simplify } from "./simplify";
 import { joinExpressions } from "./utility/joinExpressions";
 
-// function invertType(type: TypeExpression): TypeExpression {
-//     return new TypeExpression(joinExpressions(type.proposition.split("||").map(term => Interval.fromType(term)).flat(), "||"));
-// }
-
-export function sign(a: number | bigint) {
+function sign(a: number | bigint) {
     return a < 0 ? -1 : a > 0 ? +1 : 0;
+}
+
+function abs(a: number | bigint) {
+    return a < 0 ? -a : a;
+}
+
+function max(a: number | bigint, b: number | bigint) {
+    return a > b ? a : b;
+}
+
+function min(a: number | bigint, b: number | bigint) {
+    return a < b ? a : b;
+}
+
+function trunc<T extends number | bigint>(a: T) {
+    if (typeof a === "number") {
+        a = Math.trunc(a) as T;
+    }
+    return a;
+}
+
+function isInteger(a: number | bigint) {
+    return a === trunc(a);
+}
+
+function negate(a: number | bigint) {
+    return ((typeof a === "bigint" ? -1n : -1.0) as any) * (a as any);
+}
+
+function zero<T extends number | bigint>(a: T) {
+    return typeof a === "bigint" ? 0n : 0.0;
+}
+
+function one<T extends number | bigint>(a: T) {
+    return typeof a === "bigint" ? 1n : 1.0;
 }
 
 export function invertInterval(i: Interval<number>): Interval<number>[] {
@@ -21,23 +52,38 @@ export function invertInterval(i: Interval<number>): Interval<number>[] {
     let hasZero = !sameSign;
     if (hasZero) {
         return [
-            new Interval(Number.NEGATIVE_INFINITY, 1 / i.min),
-            new Interval(1 / i.max, Number.POSITIVE_INFINITY),
+            new Interval(Number.NEGATIVE_INFINITY, 1 / i.min, false, i.minExclusive),
+            new Interval(1 / i.max, Number.POSITIVE_INFINITY, i.maxExclusive, false),
         ];
     }
     else {
-        return [new Interval(1 / i.max, 1 / i.min)];
+        return [new Interval(1 / i.max, 1 / i.min, i.maxExclusive, i.minExclusive)];
     }
 }
 
 function combineIntervals<T extends number | bigint>(a: Interval<T>, b: Interval<T>, operation: (a: T, b: T) => T) {
     //  we track all possible edge values and whether or not they are exclusive
-    let values: [T, boolean][] = [
-        [operation(a.min, b.min), a.minExclusive || b.minExclusive],
-        [operation(a.min, b.max), a.minExclusive || b.maxExclusive],
-        [operation(a.max, b.min), a.maxExclusive || b.minExclusive],
-        [operation(a.max, b.max), a.maxExclusive || b.maxExclusive],
-    ];
+    let values: [T, boolean][] = []
+    let push = (a: T, b: T, exclusive = false) => {
+        values.push([operation(a, b), exclusive]);        
+    }
+    push(a.min, b.min, a.minExclusive || b.minExclusive);
+    push(a.min, b.max, a.minExclusive || b.maxExclusive);
+    push(a.max, b.min, a.maxExclusive || b.minExclusive);
+    push(a.max, b.max, a.maxExclusive || b.maxExclusive);
+
+    //  we also use incrementally lower values.
+    let c0 = trunc((b.min as any) + (one(b.min) as any) as T);
+    let c1 = trunc((b.max as any) - (one(b.max) as any) as T);
+    if (c0 > b.min && c0 < b.max) {
+        push(a.min, c0);
+        push(a.max, c0);
+    }
+    if (c1 > b.min && c1 > b.min) {
+        push(a.min, c1);
+        push(a.max, c1);
+    }
+
     //  then we loop and find the min/max values along with whether or not they are exclusive
     let min = values[0];
     let max = values[0];
@@ -56,6 +102,10 @@ function combineIntervals<T extends number | bigint>(a: Interval<T>, b: Interval
 
 function multiplyIntervals<T extends number | bigint>(a: Interval<T>, b: Interval<T>) {
     return combineIntervals<T>(a, b, (a, b) => a * b as T);
+}
+
+function exponentIntervals<T extends number | bigint>(a: Interval<T>, b: Interval<T>) {
+    return combineIntervals<T>(a, b, (a, b) => a ** b as T);
 }
 
 function divideIntervals<T extends number | bigint>(a: Interval<T>, b: Interval<T>) {
@@ -84,6 +134,21 @@ export function combineTypes(left: TypeExpression, operator: string, right: Type
         case MathOperator.multiplication:
             return simplify(
                 foreachIntervalPair(left, right, multiplyIntervals)
+            ) as TypeExpression;
+        case MathOperator.exponentiation:
+            return simplify(
+                foreachIntervalPair(left, right, exponentIntervals)
+            ) as TypeExpression;
+        case MathOperator.remainder:
+            return simplify(
+                foreachIntervalPair(left, right, (a, b) => {
+                    const maxValue = max(abs(b.min), abs(b.max));
+                    const maxExclusive = true;
+                    const zero = typeof maxValue === "bigint" ? 0n : 0.0;
+                    const minValue = a.min < zero ? negate(maxValue) : zero;
+                    const minExclusive = a.min < zero;
+                    return new Interval(minValue, maxValue, minExclusive, maxExclusive).toType();
+                })
             ) as TypeExpression;
         case MathOperator.division:
             return simplify(
