@@ -122,6 +122,9 @@ export function combineTypes(left: TypeExpression, operator: string, right: Type
         case MathOperator.addition:
             return simplify(
                 foreachIntervalPair<number>(left, right, (a, b) => {
+                    if (typeof a.min === "number" && typeof b.min === "bigint") {
+                        debugger;
+                    }
                     return new Interval(a.min + b.min, a.max + b.max, a.minExclusive || b.minExclusive, a.maxExclusive || b.maxExclusive).toType();
                 })
             ) as TypeExpression;
@@ -169,7 +172,8 @@ export function combineTypes(left: TypeExpression, operator: string, right: Type
 }
 
 function foreachIntervalPair<T extends number | bigint>(a: TypeExpression, b: TypeExpression, callback: (a: Interval<T>, b: Interval<T>) => Expression | null): Expression {
-    return foreachSplitRejoin(joinExpressions(Interval.fromType(a), "||"), joinExpressions(Interval.fromType(b), "||"), "||", (a, b) => {
+    // console.log({ a: a.toString(), b: b.toString(), aInteger: })
+    return foreachSplitRejoin(joinExpressions(Interval.fromOrType(a), "||"), joinExpressions(Interval.fromOrType(b), "||"), "||", (a, b) => {
         return callback(a as Interval<T>, b as Interval<T>);
     })
 }

@@ -10,6 +10,7 @@ import { joinExpressions } from "./utility/joinExpressions"
 import { NumberLiteral } from "./expressions/NumberLiteral"
 import { TypeExpression } from "./expressions/TypeExpression"
 import { combineTypes } from "./combineTypes"
+import { Interval } from "./expressions"
 
 function find<T>(items: Iterable<T>, predicate: (value: T) => boolean): T | null {
     for (let item of items) {
@@ -55,7 +56,43 @@ export const simplify = memoize(function(e: Expression): Expression {
                 terms.splice(i - 1, 1);
             }
         }
+
         e = joinExpressions(terms, "&&");
+    }
+
+    {
+        // extract common subexpressions
+        //  (A && B) || (A && C) => A && (B || C)
+        let commonTerms = new Map<string, Expression>();
+        let terms = e.split("||");
+        if (terms.length > 1) {
+            for (let term of terms[0].split("&&")) {
+                // see if this term is in all of the rest of the terms.
+                let allOthersContain = terms.slice(1).every(other => other.split("&&").find(otherTerm => equals(otherTerm, term)));
+                if (allOthersContain) {
+                    commonTerms.set(term.toString(), term);
+                }
+            }
+            if (commonTerms.size > 0) {
+                // extract all common terms to left side.
+                let removedTerms = e.split("||").map(
+                    a => joinExpressions(
+                        a.split("&&").filter(
+                            b => !commonTerms.has(b.toString())
+                        ),
+                        "&&"
+                    )
+                );
+                // every term has to still exist
+                if (removedTerms.every(term => term)) {
+                    let removed = joinExpressions(removedTerms, "||");
+                    if (removed) {
+                        // console.log({ e: e.toString(), commonTerms: [...commonTerms.values()], removed })
+                        return simplify(joinExpressions([joinExpressions([...commonTerms.values()], "&&"), removed], "&&"));
+                    }
+                }
+            }
+        }
     }
 
     if (e instanceof BinaryExpression) {
@@ -110,6 +147,22 @@ export const simplify = memoize(function(e: Expression): Expression {
             if (find(right.splitExpressions("||"), c => equals(c, left))) {
                 //  A || (A && B) => A || B
                 return right;
+            }
+            //  simplify Interval || Interval
+            {
+                let leftInterval = Interval.getIntervalIfOnlyTerm(left);
+                if (leftInterval) {
+                    let rightInterval = Interval.getIntervalIfOnlyTerm(right);
+                    if (rightInterval) {
+                        // see if they overlap.
+                        if (leftInterval.type === rightInterval.type && leftInterval.overlaps(rightInterval)) {
+                            let combinedInterval = leftInterval.combine(rightInterval);
+                            // now convert back to a type
+                            // console.log({ left: left.toString(), right: right.toString(), combined: combinedInterval.toString() });
+                            return combinedInterval.toType().proposition;
+                        }
+                    }
+                }
             }
             if (left instanceof BinaryExpression &&
                 right instanceof BinaryExpression &&

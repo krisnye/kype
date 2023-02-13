@@ -7,7 +7,7 @@ import { Interval } from "../expressions/Interval";
 function testInterval(typeString: string, intervalString: string) {
     const expected = parseExpression(intervalString) as Interval<number | bigint>; 
     const t = parseExpression(typeString) as TypeExpression;
-    const actual = joinExpressions(Interval.fromType(t), "||");
+    const actual = joinExpressions(Interval.fromOrType(t), "||");
     assert.deepEqual(actual, expected);
 }
 

@@ -31,6 +31,7 @@ testSimplify("(A <= 10.0 || A > 10.0) && A > B", "A > B");
 testSimplify("A != A", "0.0");
 testSimplify("A == A", "1.0");
 testSimplify("A != A && A > B", "0.0");
+testSimplify("A && B || A && C", "(B || C) && A");
 
 //  simplifying also normalizes.
 testSimplify("10.0 == A", "A == 10.0");
@@ -42,6 +43,10 @@ testSimplify("3.0 * 4.0 - 10.0 / 2.0", "7.0");
 testSimplify("3.0 * 4.0 - x", "12.0 - x");
 testSimplify("@ < 10.0 || 0.0 < @", "@ <= POS_INFINITY");
 testSimplify("foo < x || foo > x", "foo != x");
+
+//  TODO: actually simplify this into foo > 0 && foo < 20
+testSimplify(`(@ > 0 && @ < 10) || (@ > 5 && @ < 20)`, "(@ >= 1 && @ <= 19)")
+// testSimplify(`(@ > 0 && @.class == "Integer" && @ < 10) || (@ > 5 && @ < 20 && @.class == "Integer")`, "@")
 
 //  test +/-infinity
 testSimplify("POS_INFINITY + 12.0", "POS_INFINITY");
