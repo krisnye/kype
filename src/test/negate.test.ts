@@ -1,7 +1,7 @@
 import { strict as assert } from "assert";
 import { negate } from "../negate";
 import { normalize } from "../normalize";
-import { parseExpression } from "./parseExpression";
+import { parseExpression } from "../parser/parseExpression";
 
 function testNegate(propositionString: string, negateString: string) {
     const p = parseExpression(propositionString);

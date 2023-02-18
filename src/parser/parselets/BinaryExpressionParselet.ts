@@ -1,12 +1,12 @@
 import { Parser } from "../Parser";
 import { getInfixPrecedence, infixRightAssociative } from "../operators";
 import { InfixParselet } from "../InfixParslet";
-import { BinaryExpression } from "../../../expressions/BinaryExpression";
-import { Expression } from "../../../expressions/Expression";
+import { BinaryExpression } from "../../expressions/BinaryExpression";
+import { Expression } from "../../expressions/Expression";
 import { Token } from "../Token";
-import { MemberExpression } from "../../../expressions/MemberExpression";
-import { NumberLiteral } from "../../../expressions/NumberLiteral";
-import { Interval } from "../../../expressions/Interval";
+import { MemberExpression } from "../../expressions/MemberExpression";
+import { NumberLiteral } from "../../expressions/NumberLiteral";
+import { Interval } from "../../expressions/Interval";
 
 export class BinaryExpressionParselet extends InfixParselet {
 

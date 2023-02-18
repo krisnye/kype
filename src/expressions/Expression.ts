@@ -3,7 +3,34 @@ import { Replace, traverse } from "@glas/traverse";
 import { equals } from "../utility/equals";
 import { memoize } from "../utility/memoize";
 
+export enum ExpressionKind {
+    Unknown = 0,
+    Boolean = 1,
+    Integer = 2,
+    Float = 3,
+    String = 4
+}
+
 export abstract class Expression {
+
+    /**
+     * This field can be used by client applications to store and later retrieve information.
+     */
+    public source: unknown;
+    public kind = ExpressionKind.Unknown;
+
+    constructor(source?: unknown) {
+        this.source = source;
+    }
+
+    /**
+     * Returns true if this expression has no sub expressions.
+     */
+    public get isTerminal() { return true; }
+    /**
+     * Returns true if this expressions child sub expressions are terminal.
+     */
+    public get isShallow() { return this.isTerminal }
 
     public abstract readonly sortOrder: number;
     protected abstract toStringInternal(): string;

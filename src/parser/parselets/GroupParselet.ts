@@ -1,5 +1,5 @@
-import { Expression } from "../../../expressions/Expression";
-import { TypeExpression } from "../../../expressions/TypeExpression";
+import { Expression } from "../../expressions/Expression";
+import { TypeExpression } from "../../expressions/TypeExpression";
 import { Parser } from "../Parser";
 import { Token } from "../Token";
 import { PrefixOperatorParselet } from "./PrefixOperatorParselet";

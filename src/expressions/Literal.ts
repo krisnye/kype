@@ -6,8 +6,8 @@ export class Literal<T> extends Expression {
     get sortOrder() { return 10; }
     readonly value: T;
 
-    constructor(value: T) {
-        super();
+    constructor(value: T, source?: unknown) {
+        super(source);
         this.value = value;
     }
 

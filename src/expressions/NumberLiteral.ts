@@ -1,5 +1,5 @@
 
-import { Expression } from "./Expression";
+import { Expression, ExpressionKind } from "./Expression";
 import { Literal } from "./Literal";
 
 type IntegerLiteral = NumberLiteral & { value: bigint };
@@ -16,6 +16,11 @@ export function isFloatLiteral(e: any): e is FloatLiteral {
 export class NumberLiteral extends Literal<number | bigint> {
 
     get sortOrder() { return 10; }
+
+    constructor(value: number | bigint, source?: unknown) {
+        super(value, source);
+        this.kind = typeof value === "number" ? ExpressionKind.Float : ExpressionKind.Integer;
+    }
 
     isNegativeInfinity() {
         return this.value === Number.NEGATIVE_INFINITY;

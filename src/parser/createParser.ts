@@ -4,11 +4,11 @@ import { BinaryExpressionParselet } from "./parselets/BinaryExpressionParselet";
 import { MemberParselet } from "./parselets/MemberParselet";
 import { TerminalParselet } from "./parselets/TerminalParselet";
 import { GroupParselet } from "./parselets/GroupParselet";
-import { CallParselet } from "./parselets/CallParselet";
-import { Reference } from "../../expressions/Reference";
-import { NumberLiteral } from "../../expressions/NumberLiteral";
-import { DotExpression } from "../../expressions/DotExpression";
-import { StringLiteral } from "../../expressions";
+// import { CallParselet } from "./parselets/CallParselet";
+import { Reference } from "../expressions/Reference";
+import { NumberLiteral } from "../expressions/NumberLiteral";
+import { DotExpression } from "../expressions/DotExpression";
+import { StringLiteral } from "../expressions";
 
 export function createParser() {
     return new Parser({
@@ -31,7 +31,6 @@ export function createParser() {
     },
     {
         Operator: new BinaryExpressionParselet(),
-        OpenParen: new CallParselet("CloseParen"),
         OpenBracket: new MemberParselet("CloseBracket"),
     })
 }

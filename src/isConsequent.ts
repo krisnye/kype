@@ -1,13 +1,12 @@
 import { BinaryExpression } from "./expressions/BinaryExpression";
-import { LogicalOperator } from "./expressions/BinaryOperator";
 import { Expression } from "./expressions/Expression";
 import { Literal } from "./expressions/Literal";
 import { UnaryExpression } from "./expressions/UnaryExpression";
-import { UnaryOperator } from "./expressions/UnaryOperator";
 import { simplify } from "./simplify";
 import { equals } from "./utility/equals";
+import { isConsequent as isConsequentZ3 } from "./z3/isConsequent";
 
-type Maybe = true | false | null
+export type Maybe = true | false | null
 //  a  \  b |  true   false   null
 //  --------------------------------
 //  true    |  true   true    true
@@ -41,6 +40,26 @@ function same(a: Maybe, b: Maybe): Maybe {
     return a === b ? a : null
 }
 
+export async function isConsequentAsync(a: Expression, b: Expression): Promise<Maybe> {
+    // const start = performance.now();
+    let result = isConsequent(a, b);
+    // const end = performance.now();
+    // console.log(`---: ${end - start}`);
+    if (result === null) {
+        //  sat is pretty slow, so we only run it on non-trivial expressions
+        //  we know we can solve the trivial ones.
+        if (!(a.isShallow && b.isShallow)) {    //  minor optimization.
+            // only run z3 if we can't synchronously prove true or false.
+            // const start = performance.now();
+            // this is at least 3 orders of magnitude slower than our analysis
+            result = await isConsequentZ3(a, b);
+            // const end = performance.now();
+            // console.log(`+++: ${end - start}`);
+        }
+    }
+    return result;
+}
+
 /**
  * Assuming expression 'a' is true then this function returns
  * true if 'b' is necessarily true
@@ -53,10 +72,10 @@ export function isConsequent(a: Expression, b: Expression): Maybe {
     if (equals(a, b)) {
         return true;
     }
-    if (a instanceof UnaryExpression && a.operator === UnaryOperator.not && equals(a.argument, b)) {
+    if (a instanceof UnaryExpression && a.operator === "!" && equals(a.argument, b)) {
         return false;
     }
-    if (b instanceof UnaryExpression && b.operator === UnaryOperator.not && equals(b.argument, a)) {
+    if (b instanceof UnaryExpression && b.operator === "-" && equals(b.argument, a)) {
         return false;
     }
     if (a instanceof BinaryExpression) {
@@ -157,28 +176,8 @@ export function isConsequent(a: Expression, b: Expression): Maybe {
                                 case '==': return false;
                             }
                             break;
-                        case 'is':
-                            switch (b.operator) {
-                                case 'is': return true;
-                                case 'isnt': return false;
-                            }
-                            break;
-                        case 'isnt':
-                            switch (b.operator) {
-                                case 'is': return false;
-                                case 'isnt': return true;
-                            }
-                            break;
                     }
                 }
-                // else if (a.operator === "is" && b.operator === "is") {
-                //     // at this point, we KNOW that a.left == b.left and a.right != b.right
-                //     return false;
-                // }
-                // else if (b.operator === "is" && equals(b.right, Types.Number)) {
-                //     //  if the right hand side is of type number then just check if left is a number
-                //     return a.isLeftNumber();
-                // }
             }
         }
     }
@@ -187,11 +186,11 @@ export function isConsequent(a: Expression, b: Expression): Maybe {
     //  if any term on the left results in a false on the right then false (not consequent)
     //  if all terms on the right are true based on any term on the left then true (consequent)
     //  otherwise null (unknown)
-    if (b instanceof BinaryExpression && b.operator === LogicalOperator.and || a instanceof BinaryExpression && a.operator === LogicalOperator.and) {
+    if (b instanceof BinaryExpression && b.operator === "&&" || a instanceof BinaryExpression && a.operator === "&&") {
         let allTrue = true
-        for (let bTerm of b.splitExpressions(LogicalOperator.and)) {
+        for (let bTerm of b.splitExpressions("&&")) {
             let bTermResult: boolean | null = null
-            for (let aTerm of a.splitExpressions(LogicalOperator.and)) {
+            for (let aTerm of a.splitExpressions("&&")) {
                 let aTermResult = isConsequent(aTerm, bTerm)
                 if (aTermResult === false) {
                     return false
@@ -209,10 +208,10 @@ export function isConsequent(a: Expression, b: Expression): Maybe {
     }
 
     //  A & B => C & D
-    if (a instanceof BinaryExpression && a.operator === LogicalOperator.or) {
+    if (a instanceof BinaryExpression && a.operator === "||") {
         return same(isConsequent(a.left, b), isConsequent(a.right, b))
     }
-    if (b instanceof BinaryExpression && b.operator === LogicalOperator.or) {
+    if (b instanceof BinaryExpression && b.operator === "||") {
         return max(isConsequent(a, b.left), isConsequent(a, b.right))
     }
     return null

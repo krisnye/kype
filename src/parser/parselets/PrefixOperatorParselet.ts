@@ -1,10 +1,10 @@
 import { Parser } from "../Parser";
 import { prefixPrecedence } from "../operators";
-import { UnaryExpression } from "../../../expressions/UnaryExpression";
-import { Expression } from "../../../expressions/Expression";
+import { UnaryExpression } from "../../expressions/UnaryExpression";
+import { Expression } from "../../expressions/Expression";
 import { Token } from "../Token";
 import { PrefixParselet } from "../PrefixParselet";
-import { NumberLiteral } from "../../../expressions/NumberLiteral";
+import { NumberLiteral } from "../../expressions/NumberLiteral";
 
 export class PrefixOperatorParselet extends PrefixParselet {
 

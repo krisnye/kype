@@ -1,6 +1,6 @@
 import { strict as assert } from "assert";
 import { simplify } from "../simplify";
-import { parseExpression } from "./parseExpression";
+import { parseExpression } from "../parser/parseExpression";
 
 function testSimplify(inputString: string, expectedString: string) {
     let input = parseExpression(inputString);
@@ -46,7 +46,6 @@ testSimplify("foo < x || foo > x", "foo != x");
 
 //  TODO: actually simplify this into foo > 0 && foo < 20
 testSimplify(`(@ > 0 && @ < 10) || (@ > 5 && @ < 20)`, "(@ >= 1 && @ <= 19)")
-// testSimplify(`(@ > 0 && @.class == "Integer" && @ < 10) || (@ > 5 && @ < 20 && @.class == "Integer")`, "@")
 
 //  test +/-infinity
 testSimplify("POS_INFINITY + 12.0", "POS_INFINITY");

@@ -1,4 +1,4 @@
-import { Expression } from "../../expressions/Expression";
+import { Expression } from "../expressions/Expression";
 import { InfixParselet } from "./InfixParslet";
 import { PrefixParselet } from "./PrefixParselet";
 import { Token } from "./Token";

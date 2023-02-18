@@ -2,6 +2,7 @@
 import { Expression } from "./Expression";
 import { Reference } from "./Reference";
 
+// TODO: Remove this class as well.
 export class MemberExpression extends Expression {
 
     get sortOrder() { return 8; }

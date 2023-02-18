@@ -1,8 +1,8 @@
+import { BinaryOperator } from "../expressions";
 import { BinaryExpression } from "../expressions/BinaryExpression"
-import { LogicalOperator } from "../expressions/BinaryOperator"
 import { Expression } from "../expressions/Expression"
 
-export function combineExpressions(expressions: Array<Expression>, operator: string = LogicalOperator.and): Expression | undefined {
+export function combineExpressions(expressions: Array<Expression>, operator: BinaryOperator = "&&"): Expression | undefined {
     let result: Expression | undefined;
     for (let i = expressions.length - 1; i >= 0; i--) {
         let e = expressions[i];

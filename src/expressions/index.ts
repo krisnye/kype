@@ -1,6 +1,5 @@
 export * from "./BinaryExpression";
 export * from "./BinaryOperator";
-export * from "./CallExpression";
 export * from "./DotExpression";
 export * from "./Expression";
 export * from "./Interval";

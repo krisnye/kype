@@ -108,7 +108,7 @@ export const simplify = memoize(function(e: Expression): Expression {
             if (e.operator === "!=") {
                 return new NumberLiteral(0);
             }
-            if (e.operator === "&&" || e.operator == "||" || e.operator === "&" || e.operator == "|") {
+            if (e.operator === "&&" || e.operator == "||") {
                 //  A && A => A
                 //  A || A => A
                 //  A &  A => A
@@ -116,15 +116,6 @@ export const simplify = memoize(function(e: Expression): Expression {
                 return left;
             }
         }
-        // else if ((e.operator === ">" || e.operator === "<") && right instanceof Literal && right.integer) {
-        //     // convert comparisons against integer literals to use >= of adjacent integer.
-        //     switch (e.operator) {
-        //         case ">":
-        //             return new BinaryExpression(left, ">=", new Literal((right as Literal).value + 1, true));
-        //         case "<":
-        //             return new BinaryExpression(left, "<=", new Literal((right as Literal).value - 1, true));
-        //     }
-        // }
         else if (e.operator === "||") {
             if (isTrue(left) || isFalse(right)) {
                 return left;

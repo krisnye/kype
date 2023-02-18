@@ -1,4 +1,4 @@
-import { Expression } from "../../expressions/Expression";
+import { Expression } from "../expressions/Expression";
 import { Parser } from "./Parser";
 import { Token } from "./Token";
 

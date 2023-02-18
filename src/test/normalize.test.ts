@@ -1,6 +1,6 @@
 import { strict as assert } from "assert";
 import { normalize } from "../normalize";
-import { parseExpression } from "./parseExpression";
+import { parseExpression } from "../parser/parseExpression";
 
 function testNormalize(propositionString: string, normalizedString: string) {
     const p = parseExpression(propositionString);

@@ -150,10 +150,10 @@ function isIntegerType(term: Expression) {
     let integer = false;
     term.split("&&").forEach(term => {
         if (term instanceof BinaryExpression
-        && term.left instanceof MemberExpression
-        && term.left.object instanceof DotExpression
-        && term.left.property instanceof Reference
-        && term.left.property.name === "class"
+        // && term.left instanceof MemberExpression
+        // && term.left.object instanceof DotExpression
+        // && term.left.property instanceof Reference
+        // && term.left.property.name === "class"
         && term.right instanceof StringLiteral
         && term.right.value === "Integer") {
             integer = true;

@@ -4,9 +4,7 @@ export class DotExpression extends Expression {
 
     get sortOrder() { return -1; }
 
-    constructor() {
-        super();
-    }
+    public get isTerminal() { return true };
 
     public compareSortOrderSameType(b: DotExpression): number {
         return 0;

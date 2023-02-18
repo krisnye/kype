@@ -1,5 +1,2 @@
 
-export enum UnaryOperator {
-    not = "!",
-    negation = "-",
-}
+export type UnaryOperator = "!" | "-";

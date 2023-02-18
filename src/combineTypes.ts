@@ -1,7 +1,7 @@
+import { BinaryOperator } from "./expressions";
 import { BinaryExpression } from "./expressions/BinaryExpression";
-import { LogicalOperator, MathOperator } from "./expressions/BinaryOperator";
 import { Expression } from "./expressions/Expression";
-import { Interval, isFloatInterval, isIntegerInterval } from "./expressions/Interval";
+import { Interval, isFloatInterval } from "./expressions/Interval";
 import { TypeExpression } from "./expressions/TypeExpression";
 import { simplify } from "./simplify";
 import { joinExpressions } from "./utility/joinExpressions";
@@ -112,37 +112,34 @@ function divideIntervals<T extends number | bigint>(a: Interval<T>, b: Interval<
     return combineIntervals<T>(a, b, (a, b) => a / b as T);
 }
 
-export function combineTypes(left: TypeExpression, operator: string, right: TypeExpression): TypeExpression {
+export function combineTypes(left: TypeExpression, operator: BinaryOperator, right: TypeExpression): TypeExpression {
     switch (operator) {
-        case LogicalOperator.and:
-        case LogicalOperator.or:
+        case "&&":
+        case "||":
             return new TypeExpression(
                 simplify(new BinaryExpression(left.proposition, operator, right.proposition))
             );
-        case MathOperator.addition:
+        case "+":
             return simplify(
                 foreachIntervalPair<number>(left, right, (a, b) => {
-                    if (typeof a.min === "number" && typeof b.min === "bigint") {
-                        debugger;
-                    }
                     return new Interval(a.min + b.min, a.max + b.max, a.minExclusive || b.minExclusive, a.maxExclusive || b.maxExclusive).toType();
                 })
             ) as TypeExpression;
-        case MathOperator.subtraction:
+        case "-":
             return simplify(
                 foreachIntervalPair<number>(left, right, (a, b) => {
                     return new Interval(a.min - b.max, a.max - b.min, a.minExclusive || b.minExclusive, a.maxExclusive || b.maxExclusive).toType();
                 })
             ) as TypeExpression;
-        case MathOperator.multiplication:
+        case "*":
             return simplify(
                 foreachIntervalPair(left, right, multiplyIntervals)
             ) as TypeExpression;
-        case MathOperator.exponentiation:
+        case "**":
             return simplify(
                 foreachIntervalPair(left, right, exponentIntervals)
             ) as TypeExpression;
-        case MathOperator.remainder:
+        case "%":
             return simplify(
                 foreachIntervalPair(left, right, (a, b) => {
                     const maxValue = max(abs(b.min), abs(b.max));
@@ -153,7 +150,7 @@ export function combineTypes(left: TypeExpression, operator: string, right: Type
                     return new Interval(minValue, maxValue, minExclusive, maxExclusive).toType();
                 })
             ) as TypeExpression;
-        case MathOperator.division:
+        case "/":
             return simplify(
                 foreachIntervalPair(left, right, (a, b) => {
                     if (isFloatInterval(b)) {
@@ -178,7 +175,7 @@ function foreachIntervalPair<T extends number | bigint>(a: TypeExpression, b: Ty
     })
 }
 
-function foreachSplitRejoin(a: Expression, b: Expression, operator: string, callback: (a: Expression, b: Expression) => Expression | null): Expression {
+function foreachSplitRejoin(a: Expression, b: Expression, operator: BinaryOperator, callback: (a: Expression, b: Expression) => Expression | null): Expression {
     return joinExpressions(foreachProduct(a.split(operator), b.split(operator), callback), operator);
 }
 

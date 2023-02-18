@@ -1,20 +1,24 @@
 
-import { compareBinaryOperator } from "./BinaryOperator";
-import { Expression } from "./Expression";
+import { BinaryOperator, compareBinaryOperator } from "./BinaryOperator";
+import { Expression, ExpressionKind } from "./Expression";
 
 export class BinaryExpression extends Expression {
 
     get sortOrder() { return 1; }
     readonly left: Expression;
-    readonly operator: string;
+    readonly operator: BinaryOperator;
     readonly right: Expression;
 
-    constructor(left: Expression, operator: string, right: Expression) {
+    constructor(left: Expression, operator: BinaryOperator, right: Expression, kind = ExpressionKind.Unknown) {
         super();
         this.left = left;
         this.operator = operator;
         this.right = right;
+        this.kind = kind;
     }
+
+    public get isTerminal() { return false; }
+    public get isShallow() { return this.left.isTerminal && this.right.isTerminal; }
 
     *splitExpressions(operator: string = "&&"): Iterable<Expression> {
         if (this.operator === operator) {
@@ -41,12 +45,6 @@ export class BinaryExpression extends Expression {
             case ">":
             case ">=":
                 return true;
-            // case "is":
-            //     return equals(this.right, Types.Number);
-            // case "isnt":
-            //     if (equals(this.right, Types.Number)) {
-            //         return false;
-            //     }
             default:
                 return null;
         }

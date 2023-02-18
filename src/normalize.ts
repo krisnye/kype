@@ -1,30 +1,29 @@
 
-import { isIntegerLiteral, NumberLiteral } from "./expressions";
+import { BinaryOperator, isIntegerLiteral, NumberLiteral } from "./expressions";
 import { BinaryExpression } from "./expressions/BinaryExpression";
-import { BinaryOperator, ComparisonOperator, LogicalOperator, MathOperator } from "./expressions/BinaryOperator";
 import type { Expression } from "./expressions/Expression"
 import { UnaryExpression } from "./expressions/UnaryExpression";
 import { joinExpressions } from "./utility/joinExpressions";
 import { memoize } from "./utility/memoize";
 
-const reflectOperators: { [operator: string]: BinaryOperator } = {
-    [ComparisonOperator.greaterThan]: ComparisonOperator.lessThan,
-    [ComparisonOperator.lessThan]: ComparisonOperator.greaterThan,
-    [ComparisonOperator.greaterThanOrEqual]: ComparisonOperator.lessThanOrEqual,
-    [ComparisonOperator.lessThanOrEqual]: ComparisonOperator.greaterThanOrEqual,
-    [ComparisonOperator.equality]: ComparisonOperator.equality,
-    [ComparisonOperator.inequality]: ComparisonOperator.inequality,
-    [MathOperator.addition]: MathOperator.addition,
-    [MathOperator.multiplication]: MathOperator.multiplication,
-    [LogicalOperator.and]: LogicalOperator.and,
-    [LogicalOperator.or]: LogicalOperator.or,
+const reflectOperators: { [K in BinaryOperator]?: BinaryOperator } = {
+    ">": "<",
+    "<": ">",
+    ">=": "<=",
+    "<=": ">=",
+    "==": "==",
+    "!=": "!=",
+    "+": "+",
+    "*": "*",
+    "&&": "&&",
+    "||": "||",
 }
 
-const reassociateLeft: { [operator: string]: boolean } = {
-    [LogicalOperator.or]: true,
-    [LogicalOperator.and]: true,
-    [MathOperator.addition]: true,
-    [MathOperator.multiplication]: true,
+const reassociateLeft: { [K in BinaryOperator]?: boolean } = {
+    "||": true,
+    "&&": true,
+    "+": true,
+    "*": true,
 }
 
 function compareSortOrder(left: Expression, right: Expression) {
@@ -42,7 +41,7 @@ export const normalize = memoize(function(e: Expression): Expression {
         let canSwap = reflectOperators[operator] != null;
         if (canSwap && compareSortOrder(left, right) > 0) {
             [left, right] = [right, left]
-            operator = reflectOperators[operator]
+            operator = reflectOperators[operator]!
         }
         if (isIntegerLiteral(right)) {
             if (operator === "<") {

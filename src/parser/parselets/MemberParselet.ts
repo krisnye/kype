@@ -1,9 +1,9 @@
 import { Parser } from "../Parser";
 import { tokenTypes } from "../tokenizer/TokenType";
 import { BinaryExpressionParselet } from "./BinaryExpressionParselet";
-import { Expression } from "../../../expressions/Expression";
+import { Expression } from "../../expressions/Expression";
 import { Token } from "../Token";
-import { MemberExpression } from "../../../expressions/MemberExpression";
+import { MemberExpression } from "../../expressions/MemberExpression";
 
 export class MemberParselet extends BinaryExpressionParselet {
 

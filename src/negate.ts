@@ -1,36 +1,34 @@
+import { BinaryOperator } from "./expressions";
 import { BinaryExpression } from "./expressions/BinaryExpression";
-import { BinaryOperator, ComparisonOperator, LogicalOperator } from "./expressions/BinaryOperator";
 import { Expression } from "./expressions/Expression";
 import { UnaryExpression } from "./expressions/UnaryExpression";
 import { UnaryOperator } from "./expressions/UnaryOperator";
 import { memoize } from "./utility/memoize";
 
-const negateOperators: { [operator: string]: BinaryOperator } = {
-    [ComparisonOperator.greaterThan]: ComparisonOperator.lessThanOrEqual,
-    [ComparisonOperator.lessThan]: ComparisonOperator.greaterThanOrEqual,
-    [ComparisonOperator.greaterThanOrEqual]: ComparisonOperator.lessThan,
-    [ComparisonOperator.lessThanOrEqual]: ComparisonOperator.greaterThan,
-    [ComparisonOperator.equality]: ComparisonOperator.inequality,
-    [ComparisonOperator.inequality]: ComparisonOperator.equality,
-    // [TypeOperator.is]: TypeOperator.isnt,
-    // [TypeOperator.isnt]: TypeOperator.is,
+const negateOperators: { [K in BinaryOperator]?: BinaryOperator } = {
+    ">": "<=",
+    "<": ">=",
+    ">=": "<",
+    "<=": ">",
+    "==": "!=",
+    "!=": "==",
 }
 
 export const negate = memoize(
     function negate(e: Expression): Expression {
         if (e instanceof UnaryExpression) {
             //  !!A => A
-            if (e.operator === UnaryOperator.not) {
+            if (e.operator === "!") {
                 return e.argument
             }
         }
         if (e instanceof BinaryExpression) {
-            if (e.operator === LogicalOperator.and || e.operator === LogicalOperator.or) {
+            if (e.operator === "&&" || e.operator === "||") {
                 // !(A && B) => !A || !B
                 // !(A || B) => !A && !B
                 return new BinaryExpression(
                     negate(e.left),
-                    e.operator === LogicalOperator.and ? LogicalOperator.or : LogicalOperator.and,
+                    e.operator === "&&" ? "||" : "&&",
                     negate(e.right),
                 )
             }
@@ -46,6 +44,6 @@ export const negate = memoize(
             }
         }
         // !(A) => !A
-        return new UnaryExpression(UnaryOperator.not, e);
+        return new UnaryExpression("!", e);
     }
 );
