@@ -4,7 +4,7 @@ import { Maybe } from "../isConsequent";
 import { negate } from "../negate";
 import { getZ3, toZ3 } from "./toZ3";
 
-export async function isConsequent(a: Expression, b: Expression): Promise<Maybe> {
+export async function isConsequentZ3(a: Expression, b: Expression): Promise<Maybe> {
     const { context, z3 } = getZ3();
     const solver = new context.Solver();
     const z3A = toZ3(context, a) as Bool<"main">;

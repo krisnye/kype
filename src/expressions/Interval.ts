@@ -2,9 +2,7 @@ import { joinExpressions } from "../utility/joinExpressions";
 import { BinaryExpression } from "./BinaryExpression";
 import { DotExpression } from "./DotExpression";
 import { Expression } from "./Expression";
-import { MemberExpression } from "./MemberExpression";
 import { NumberLiteral } from "./NumberLiteral";
-import { Reference } from "./Reference";
 import { StringLiteral } from "./StringLiteral";
 import { TypeExpression } from "./TypeExpression";
 
@@ -100,8 +98,8 @@ export class Interval<T extends number | bigint> extends Expression {
         }
 
         let integer = isIntegerType(type);
-        let min = new NumberLiteral(integer ? MAX_UNSIGNED_BIGINT : Number.NEGATIVE_INFINITY);
-        let max = new NumberLiteral(integer ? MIN_SIGNED_BIGINT : Number.POSITIVE_INFINITY);
+        let min = new NumberLiteral(integer ? MIN_SIGNED_BIGINT : Number.NEGATIVE_INFINITY);
+        let max = new NumberLiteral(integer ? MAX_UNSIGNED_BIGINT : Number.POSITIVE_INFINITY);
         let minExclusive = false;
         let maxExclusive = false;
         type.split("&&").forEach(term => {

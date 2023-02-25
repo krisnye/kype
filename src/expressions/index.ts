@@ -11,3 +11,4 @@ export * from "./Reference";
 export * from "./TypeExpression";
 export * from "./UnaryExpression";
 export * from "./UnaryOperator";
+export * from "./CustomExpression";

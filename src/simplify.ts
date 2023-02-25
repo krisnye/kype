@@ -7,10 +7,10 @@ import { memoize } from "./utility/memoize"
 import { normalize } from "./normalize"
 import { isConsequent } from "./isConsequent"
 import { joinExpressions } from "./utility/joinExpressions"
-import { NumberLiteral } from "./expressions/NumberLiteral"
+import { NumberLiteral, isIntegerLiteral } from "./expressions/NumberLiteral"
 import { TypeExpression } from "./expressions/TypeExpression"
 import { combineTypes } from "./combineTypes"
-import { Interval } from "./expressions"
+import { Interval, Literal } from "./expressions"
 
 function find<T>(items: Iterable<T>, predicate: (value: T) => boolean): T | null {
     for (let item of items) {
@@ -27,6 +27,40 @@ function isTrue(a: Expression) {
 
 function isFalse(a: Expression) {
     return a instanceof NumberLiteral && a.value === 0;
+}
+
+function adjacentValuesToRange(e: Expression): Expression {
+    let terms = e.split("||");
+    if (terms.length > 1) {
+        const leftTerms = new Map<string, Expression>();
+        const rightValues = new Array<bigint>();
+        for (const term of terms) {
+            if (!(term instanceof BinaryExpression && term.operator === "==" && isIntegerLiteral(term.right))) {
+                return e;
+            }
+            leftTerms.set(term.left.toString(), term.left);
+            if (leftTerms.size > 1) {
+                return e;
+            }
+            rightValues.push(term.right.value);
+        }
+        // these should already be sorted by normalization.
+        const start = rightValues[0];
+        const finish = rightValues[rightValues.length - 1];
+        for (let i = 1; i < rightValues.length; i++) {
+            const a = rightValues[i - 1];
+            const b = rightValues[i];
+            if (a + 1n !== b) {
+                return e;
+            }
+        }
+        const left = [...leftTerms.values()][0];
+        return joinExpressions([
+            new BinaryExpression(left, ">=", new NumberLiteral(start)),
+            new BinaryExpression(left, "<=", new NumberLiteral(finish))
+        ], "&&");
+    }
+    return e;
 }
 
 // A && B || A => A
@@ -56,8 +90,30 @@ export const simplify = memoize(function(e: Expression): Expression {
                 terms.splice(i - 1, 1);
             }
         }
-
+        terms = terms.map(adjacentValuesToRange);
         e = joinExpressions(terms, "&&");
+    }
+
+    {
+        //  after normalization then similar terms are adjacent to eachother
+        //  if we remove ones which are already consequent then this simplifies
+        //  for instance
+        //  a != 0 || a == 1        -> a != 0
+        let terms = e.split("||");
+        for (let i = terms.length - 1; i > 0; i--) {
+            let left = terms[i - 1];
+            let right = terms[i];
+            if (isConsequent(left, right)) {
+                //  remove the left;
+                terms.splice(i - 1, 1);
+            }
+            else if (isConsequent(right, left)) {
+                //  remove the right
+                terms.splice(i, 1);
+            }
+        }
+
+        e = joinExpressions(terms, "||");
     }
 
     {
@@ -159,16 +215,31 @@ export const simplify = memoize(function(e: Expression): Expression {
                 right instanceof BinaryExpression &&
                 equals(left.left, right.left)
             ) {
+                if (isIntegerLiteral(left.right) && isIntegerLiteral(right.right)) {
+                    if (left.operator === "<=" && right.operator === ">=" && (left.right.value + 2n) === right.right.value) {
+                        return new BinaryExpression(left.left, "!=", new NumberLiteral(left.right.value + 1n));
+                    }
+                    // if (left.operator === "==" && right.operator === "==" && (left.right.value + 1n) === right.right.value) {
+                    //     console.log({ left: left.toString(), right: right.toString() });
+                    //     // return new Interval(left.right.value, right.right.value);
+                    // }
+                }
+
                 if (equals(left.right, right.right)) {
-                    if (left.operator === ">" && right.operator === "<") {
+                    if (
+                        left.operator === ">" && right.operator === "<" ||
+                        left.operator === "<" && right.operator === ">"
+                    ) {
                         return new BinaryExpression(left.left, "!=", left.right);
                     }
+
                     if (
                         (left.operator === ">=" && right.operator === "<") ||
                         (left.operator === ">" && right.operator === "<=") ||
                         (left.operator === ">=" && right.operator === "<=")
                     ) {
-                        return new NumberLiteral(1);
+                        // return true?
+                        return new NumberLiteral(1.0);
                     }
                 }
                 else if (left.operator === ">" && right.operator === "<" && left.right.isLessThan(right.right)) {

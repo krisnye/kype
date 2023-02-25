@@ -1,7 +1,7 @@
 
 import { Expression } from "./Expression";
 
-export class Literal<T> extends Expression {
+export abstract class Literal<T> extends Expression {
 
     get sortOrder() { return 10; }
     readonly value: T;
@@ -12,7 +12,7 @@ export class Literal<T> extends Expression {
     }
 
     toStringInternal() {
-        return JSON.stringify(this.value);
+        return typeof this.value === "bigint" ? this.value.toString() : JSON.stringify(this.value);
     }
 
 }

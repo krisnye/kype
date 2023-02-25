@@ -4,7 +4,7 @@ import { Literal } from "./expressions/Literal";
 import { UnaryExpression } from "./expressions/UnaryExpression";
 import { simplify } from "./simplify";
 import { equals } from "./utility/equals";
-import { isConsequent as isConsequentZ3 } from "./z3/isConsequent";
+import { isConsequentZ3 as isConsequentZ3 } from "./z3/isConsequentZ3";
 
 export type Maybe = true | false | null
 //  a  \  b |  true   false   null
