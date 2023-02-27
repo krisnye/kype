@@ -50,6 +50,9 @@ export async function testIsConsequent() {
     //  test types with string
     await testConsequent(`a == "foo"`, `a == "bar"`, false);
     await testConsequent(`a == "foo"`, `a != "foo"`, false);
+
+    //  test stuff
+    await testConsequent(`{ @ <= -1 }`, `{ @ >= 0 && @ <= 2 }`, false);
     
     //  test which can only be solved by z3
     await testConsequent(`a > b && b > c`, `a > c`, true);

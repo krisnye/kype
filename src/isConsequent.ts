@@ -1,3 +1,4 @@
+import { TypeExpression } from "./expressions";
 import { BinaryExpression } from "./expressions/BinaryExpression";
 import { Expression } from "./expressions/Expression";
 import { Literal } from "./expressions/Literal";
@@ -67,6 +68,12 @@ export async function isConsequentAsync(a: Expression, b: Expression): Promise<M
  * null if we cannot determine
  */
 export function isConsequent(a: Expression, b: Expression): Maybe {
+    if (a instanceof TypeExpression) {
+        a = a.proposition;
+    }
+    if (b instanceof TypeExpression) {
+        b = b.proposition;
+    }
     a = simplify(a);
     b = simplify(b);
     if (equals(a, b)) {
