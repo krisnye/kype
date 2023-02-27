@@ -145,5 +145,16 @@ testSimplify("{ @ == 0 || @ == 1 }", "{ @ >= 0 && @ <= 1 }");
 testSimplify("{ @ == 1 || @ == 0 }", "{ @ >= 0 && @ <= 1 }");
 testSimplify("{ @ == 2 || @ == 3 || @ == 1 || @ == 0 }", "{ @ >= 0 && @ <= 3 }");
 
+//  test simplify of type comparison with other types
+testSimplify("{ @ < { @ < 10 } }", "{ @ <= 8 }");
+testSimplify("{ @ <= { @ < 10 } }", "{ @ <= 9 }");
+testSimplify("{ @ <= { @ <= 10 } }", "{ @ <= 10 }");
+testSimplify("{ @ < { @ <= 10 } }", "{ @ <= 9 }");
+
+testSimplify("{ @ > { @ > 10 } }", "{ @ >= 12 }");
+testSimplify("{ @ >= { @ > 10 } }", "{ @ >= 11 }");
+testSimplify("{ @ >= { @ >= 10 } }", "{ @ >= 10 }");
+testSimplify("{ @ > { @ >= 10 } }", "{ @ >= 11 }");
+
 //  TODO:
 // testSimplify("{ @ <= 0.0 } && ({ @ >= 0.0 } || { @ == 1.0 })", "{ @ == 0.0 } || { @ == 1.0 }");

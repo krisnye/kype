@@ -157,6 +157,26 @@ export const simplify = memoize(function(e: Expression): Expression {
         if (left instanceof TypeExpression && right instanceof TypeExpression) {
             return combineTypes(left, e.operator, right);
         }
+
+        if (right instanceof TypeExpression) {
+            if ([">", ">=", "<", "<="].includes(e.operator)) {
+                const intervals = Interval.fromOrType(right);
+                if (intervals.length === 1) {
+                    const interval = intervals[0];
+                    switch (e.operator) {
+                        case "<":
+                            return simplify(new BinaryExpression(left, "<", new NumberLiteral(interval.max)));
+                        case "<=":
+                            return simplify(new BinaryExpression(left, interval.maxExclusive ? "<" : "<=", new NumberLiteral(interval.max)));
+                        case ">":
+                            return simplify(new BinaryExpression(left, ">", new NumberLiteral(interval.min)));
+                        case ">=":
+                            return simplify(new BinaryExpression(left, interval.minExclusive ? ">" : ">=", new NumberLiteral(interval.min)));
+                    }
+                }
+            }
+        }
+
         if (equals(left, right)) {
             if (e.operator === "==") {
                 return new NumberLiteral(1);
