@@ -5,6 +5,7 @@ import { Expression } from "../../expressions/Expression";
 import { Token } from "../Token";
 import { PrefixParselet } from "../PrefixParselet";
 import { NumberLiteral } from "../../expressions/NumberLiteral";
+import { Interval } from "../../expressions";
 
 export class PrefixOperatorParselet extends PrefixParselet {
 
@@ -23,11 +24,14 @@ export class PrefixOperatorParselet extends PrefixParselet {
 
     parse(p: Parser, operator: Token): Expression {
         let argument = this.parseArgument(p, operator);
-        if (argument instanceof NumberLiteral) {
-            if (operator.value === "+") {
-                return argument;
+        if (operator.value === "+") {
+            return argument;
+        }
+        if (operator.value === "-") {
+            if (argument instanceof Interval) {
+                return new Interval(- argument.min, argument.max, argument.minExclusive, argument.maxExclusive);
             }
-            if (operator.value === "-") {
+            if (argument instanceof NumberLiteral) {
                 return new NumberLiteral( - argument.value);
             }
         }

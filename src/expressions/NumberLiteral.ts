@@ -41,10 +41,6 @@ export class NumberLiteral extends Literal<number | bigint> {
         return null;
     }
 
-    toStringInternal() {
-        return this.value.toString();
-    }
-
     static operation(left: NumberLiteral, op: string, right: NumberLiteral) {
         let value = eval(`(${left.value} ${op} ${right.value})`);
         return new NumberLiteral(value);

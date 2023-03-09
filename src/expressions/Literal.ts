@@ -12,7 +12,18 @@ export abstract class Literal<T> extends Expression {
     }
 
     toStringInternal() {
-        return typeof this.value === "bigint" ? this.value.toString() : JSON.stringify(this.value);
+        return Literal.toString(this.value);
+    }
+
+    static toString(value: unknown) {
+        switch (typeof value) {
+            case "bigint":
+                return value.toString();
+            case "number":            
+                return Number.isInteger(value) ? value.toFixed(1) : value.toString();
+            default:
+                return JSON.stringify(value);
+        }
     }
 
 }

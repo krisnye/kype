@@ -156,5 +156,29 @@ testSimplify("{ @ >= { @ > 10 } }", "{ @ >= 11 }");
 testSimplify("{ @ >= { @ >= 10 } }", "{ @ >= 10 }");
 testSimplify("{ @ > { @ >= 10 } }", "{ @ >= 11 }");
 
+//  test overlapping intervals
+testSimplify(
+    `{ @ > 0 && @ < 10 || @ > 5 && @ < 20 }`,
+    `{((@ >= 1) && (@ <= 19))}`
+)
+
+testSimplify(
+    `{ @ > 0 && @ < 10 || @ >= 10 && @ < 20 }`,
+    `{((@ >= 1) && (@ <= 19))}`
+)
+
+// test overlapping intervals with other properties.
+testSimplify(
+    `{ @ > 0 && @ < 10 && @.class == "foo" || @ > 5 && @ < 20 && @.class == "foo" && @.bar == "bar" }`,
+    `{((((@ >= 1) && (@ <= 19)) && (@.bar == "bar")) && (@.class == "foo"))}`
+);
+
+// testSimplify(
+//     `(@ >= -2) && (@ <= 0) || (@ >= 1) && (@ <= 2)`,
+//     `(@ >= -2) && (@ <= 0)`
+// );
+
+// testSimplify('{ ((((@ == -10) || ((@ >= -2) && (@ <= 0))) || ((@ >= 1) && (@ <= 2))) && (@.class == "Integer")) }', '@');
+
 //  TODO:
 // testSimplify("{ @ <= 0.0 } && ({ @ >= 0.0 } || { @ == 1.0 })", "{ @ == 0.0 } || { @ == 1.0 }");

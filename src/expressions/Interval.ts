@@ -2,6 +2,7 @@ import { joinExpressions } from "../utility/joinExpressions";
 import { BinaryExpression } from "./BinaryExpression";
 import { DotExpression } from "./DotExpression";
 import { Expression } from "./Expression";
+import { Literal } from "./Literal";
 import { NumberLiteral } from "./NumberLiteral";
 import { StringLiteral } from "./StringLiteral";
 import { TypeExpression } from "./TypeExpression";
@@ -42,9 +43,26 @@ export class Interval<T extends number | bigint> extends Expression {
         }
     }
 
-    overlaps(i: Interval<T>) {
-        return (this.max > i.min || (this.max === i.min && !this.maxExclusive && !i.minExclusive))
-            && (this.min < i.max || (this.min === i.max && !this.minExclusive && !i.maxExclusive));
+    isEmpty() {
+        return this.min === this.max && (this.minExclusive || this.maxExclusive);
+    }
+
+    contains(i: T): boolean {
+        return (this.max > i || (this.max === i && !this.maxExclusive))
+            && (this.min < i || (this.min === i && !this.minExclusive));
+
+    }
+
+    overlapsOrAdjacentIfInteger(i: Interval<T>) {
+        const isInteger = i.type === "bigint";
+        if (isInteger) {
+            return (this.max > i.min || ((this.max + (1n as any)) >= i.min && !this.maxExclusive && !i.minExclusive))
+                && (this.min < i.max || ((this.min - (1n as any)) <= i.max && !this.minExclusive && !i.maxExclusive));
+        }
+        else {
+            return (this.max > i.min || (this.max === i.min && !this.maxExclusive && !i.minExclusive))
+                && (this.min < i.max || (this.min === i.max && !this.minExclusive && !i.maxExclusive));
+        }
     }
 
     combine(i: Interval<T>) {
@@ -65,7 +83,7 @@ export class Interval<T extends number | bigint> extends Expression {
     }
 
     toStringInternal() {
-        return `{${this.minExclusive ? `>` : ``}${this.min} .. ${this.maxExclusive ? `<` : ``}${this.max}}`;
+        return `{${this.minExclusive ? `>` : ``}${Literal.toString(this.min)} .. ${this.maxExclusive ? `<` : ``}${Literal.toString(this.max)}}`;
     }
 
     toType(): TypeExpression {
@@ -82,27 +100,70 @@ export class Interval<T extends number | bigint> extends Expression {
         return new TypeExpression(joinExpressions(expressions, "&&"));
     }
 
-    static getIntervalIfOnlyTerm(term: Expression): Interval<bigint | number> | undefined {
-        if (term.split("||").length === 1) {
-            let remainingTerms: Expression[] = [];
-            let interval = Interval.fromAndType(term, remainingTerms);
-            if (remainingTerms.length === 0) {
-                return interval;
-            }
+    excludeValue(this: Interval<T>, value: T): Interval<T>[] {
+        let interval = this;
+        if (value === this.min && !this.minExclusive) {
+            interval = new Interval<T>(this.min, this.max, true, this.maxExclusive);
         }
+        if (value === this.max && !this.maxExclusive) {
+            interval = new Interval<T>(this.min, this.max, this.minExclusive, true);
+        }
+        if (value > interval.min && value < interval.max) {
+            let intervals = [];
+            let lower = new Interval<T>(this.min, value, this.minExclusive, true);
+            let upper = new Interval<T>(value, this.max, true, this.maxExclusive);
+            if (!lower.isEmpty()) {
+                intervals.push(lower);
+            }
+            if (!upper.isEmpty()) {
+                intervals.push(upper);
+            }
+            return intervals;
+        }
+        return [interval];
     }
 
-    static fromAndType(type: Expression, remainingTerms?: Expression[]): Interval<number | bigint> {
+    static fromAndTypeWithRemaining(type: Expression): [Interval<number | bigint> | null, Expression[]] {
+        let remainingTerms: Expression[] = [];
+        if (type instanceof TypeExpression) {
+            type = type.proposition;
+        }
+        const terms = type.split("&&");
+        let interval = this.fromAndTerms(terms, remainingTerms);
+        return [interval, remainingTerms];
+    }
+
+    static fromAndType(type: Expression): Interval<number | bigint>[] {
         if (type instanceof TypeExpression) {
             type = type.proposition;
         }
 
-        let integer = isIntegerType(type);
+        const terms = type.split("&&");
+        const remainingTerms: Expression[] = [];
+        let intervals = [this.fromAndTerms(terms, remainingTerms, true)];
+        for (let term of remainingTerms) {
+            if (term instanceof BinaryExpression && term.left instanceof DotExpression && term.operator === "!=" && term.right instanceof NumberLiteral) {
+                const value = term.right.value;
+                //  found a != value
+                //  split any intervals it intersects.
+                intervals = intervals.map(interval => {
+                    return interval.excludeValue(value);
+                }).flat();
+            }
+        }
+        return intervals;
+    }
+
+    static fromAndTerms(allTerms: Expression[]): Interval<number | bigint>
+    static fromAndTerms(allTerms: Expression[], remainingTerms: Expression[]): Interval<number | bigint> | null
+    static fromAndTerms(allTerms: Expression[], remainingTerms: Expression[], returnIfEmpty: true): Interval<number | bigint>
+    static fromAndTerms(allTerms: Expression[], remainingTerms?: Expression[], returnIfEmpty = false): Interval<number | bigint> | null {
+        let integer = allTerms.some(isIntegerType);
         let min = new NumberLiteral(integer ? MIN_SIGNED_BIGINT : Number.NEGATIVE_INFINITY);
         let max = new NumberLiteral(integer ? MAX_UNSIGNED_BIGINT : Number.POSITIVE_INFINITY);
         let minExclusive = false;
         let maxExclusive = false;
-        type.split("&&").forEach(term => {
+        allTerms.forEach(term => {
             if (isIntegerType(term)) {
                 integer = true;
             }
@@ -128,6 +189,10 @@ export class Interval<T extends number | bigint> extends Expression {
                 remainingTerms?.push(term);
             }
         })
+        if (!returnIfEmpty && remainingTerms?.length === allTerms.length) {
+            // we didn't use any terms so we don't return the interval.
+            return null;
+        }
         return new Interval(min.value, max.value, minExclusive, maxExclusive);
     }
 
@@ -136,7 +201,7 @@ export class Interval<T extends number | bigint> extends Expression {
             type = type.proposition;
         }
 
-        return type.split("||").map(option => Interval.fromAndType(option));
+        return type.split("||").map(option => Interval.fromAndType(option)).flat();
     }
 
 }
@@ -146,16 +211,14 @@ const MIN_SIGNED_BIGINT = - 0xFFFFFFFFFFFFFFFEn;
 
 function isIntegerType(term: Expression) {
     let integer = false;
-    term.split("&&").forEach(term => {
-        if (term instanceof BinaryExpression
-        // && term.left instanceof MemberExpression
-        // && term.left.object instanceof DotExpression
-        // && term.left.property instanceof Reference
-        // && term.left.property.name === "class"
-        && term.right instanceof StringLiteral
-        && term.right.value === "Integer") {
-            integer = true;
-        }
-    })
+    if (term instanceof BinaryExpression
+    // && term.left instanceof MemberExpression
+    // && term.left.object instanceof DotExpression
+    // && term.left.property instanceof Reference
+    // && term.left.property.name === "class"
+    && term.right instanceof StringLiteral
+    && term.right.value === "Integer") {
+        integer = true;
+    }
     return integer;
 }

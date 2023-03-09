@@ -109,7 +109,12 @@ function exponentIntervals<T extends number | bigint>(a: Interval<T>, b: Interva
 }
 
 function divideIntervals<T extends number | bigint>(a: Interval<T>, b: Interval<T>) {
-    return combineIntervals<T>(a, b, (a, b) => a / b as T);
+    return combineIntervals<T>(a, b, (a, b) => {
+        if (b === 0n || b === 0.0) {
+            debugger;
+        }
+        return a / b as T;
+    });
 }
 
 export function combineTypes(left: TypeExpression, operator: BinaryOperator, right: TypeExpression): TypeExpression {

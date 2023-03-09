@@ -152,7 +152,15 @@ export const simplify = memoize(function(e: Expression): Expression {
     }
 
     if (e instanceof BinaryExpression) {
+        const DEBUG = e.left.toString() === `(((@ == -10) || ((@ >= -2) && (@ <= 0))) || ((@ >= 1) && (@ <= 2)))`;
+        if (DEBUG) {
+            debugger;
+        }
         let left = simplify(e.left);
+        if (DEBUG) {
+            console.log(`BEFORE: ${e.left}`);
+            console.log(`AFTER : ${left}`);
+        }
         let right = simplify(e.right);
         if (left instanceof TypeExpression && right instanceof TypeExpression) {
             return combineTypes(left, e.operator, right);
@@ -217,16 +225,16 @@ export const simplify = memoize(function(e: Expression): Expression {
             }
             //  simplify Interval || Interval
             {
-                let leftInterval = Interval.getIntervalIfOnlyTerm(left);
+                let [leftInterval, leftRemaining] = Interval.fromAndTypeWithRemaining(left);
                 if (leftInterval) {
-                    let rightInterval = Interval.getIntervalIfOnlyTerm(right);
+                    let [rightInterval, rightRemaining] = Interval.fromAndTypeWithRemaining(right);
                     if (rightInterval) {
                         // see if they overlap.
-                        if (leftInterval.type === rightInterval.type && leftInterval.overlaps(rightInterval)) {
+                        if (leftInterval.type === rightInterval.type && leftInterval.overlapsOrAdjacentIfInteger(rightInterval)) {
                             let combinedInterval = leftInterval.combine(rightInterval);
                             // now convert back to a type
                             // console.log({ left: left.toString(), right: right.toString(), combined: combinedInterval.toString() });
-                            return combinedInterval.toType().proposition;
+                            return joinExpressions([combinedInterval.toType().proposition, ...leftRemaining, ...rightRemaining], "&&");
                         }
                     }
                 }
@@ -294,6 +302,7 @@ export const simplify = memoize(function(e: Expression): Expression {
                 }
             }
         }
+
         if (left instanceof NumberLiteral && right instanceof NumberLiteral) {
             e = NumberLiteral.operation(left, e.operator, right);
         }
