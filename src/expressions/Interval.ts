@@ -44,7 +44,7 @@ export class Interval<T extends number | bigint> extends Expression {
     }
 
     isEmpty() {
-        return this.min === this.max && (this.minExclusive || this.maxExclusive);
+        return this.min > this.max || this.min === this.max && (this.minExclusive || this.maxExclusive);
     }
 
     contains(i: T): boolean {
@@ -86,7 +86,7 @@ export class Interval<T extends number | bigint> extends Expression {
         return `{${this.minExclusive ? `>` : ``}${Literal.toString(this.min)} .. ${this.maxExclusive ? `<` : ``}${Literal.toString(this.max)}}`;
     }
 
-    toType(): TypeExpression {
+    toTerms(): Expression[] {
         let expressions: Expression[] = [];
         if (this.min !== Number.NEGATIVE_INFINITY) {
             expressions.push(new BinaryExpression(new DotExpression(), this.minExclusive ? ">" : ">=", new NumberLiteral(this.min)));
@@ -97,6 +97,11 @@ export class Interval<T extends number | bigint> extends Expression {
         if (expressions.length === 0) {
             expressions.push(new BinaryExpression(new DotExpression(), "<=", new NumberLiteral(Number.POSITIVE_INFINITY)));
         }
+        return expressions;
+    }
+
+    toType(): TypeExpression {
+        const expressions = this.toTerms();
         return new TypeExpression(joinExpressions(expressions, "&&"));
     }
 
@@ -123,27 +128,40 @@ export class Interval<T extends number | bigint> extends Expression {
         return [interval];
     }
 
-    static fromAndTypeWithRemaining(type: Expression): [Interval<number | bigint> | null, Expression[]] {
+    static fromAndTypeWithRemaining(type: Expression): [Interval<number | bigint>[], Expression[]] {
         let remainingTerms: Expression[] = [];
         if (type instanceof TypeExpression) {
             type = type.proposition;
         }
         const terms = type.split("&&");
-        let interval = this.fromAndTerms(terms, remainingTerms);
-        return [interval, remainingTerms];
+        let intervals = this.fromAndTerms(terms, remainingTerms);
+        return [intervals, remainingTerms];
     }
 
-    static fromAndType(type: Expression): Interval<number | bigint>[] {
+    static fromAndType(type: Expression, remainingTerms = new Array<Expression>()): Interval<number | bigint>[] {
         if (type instanceof TypeExpression) {
             type = type.proposition;
         }
 
         const terms = type.split("&&");
-        const remainingTerms: Expression[] = [];
-        let intervals = [this.fromAndTerms(terms, remainingTerms, true)];
-        for (let term of remainingTerms) {
+        return this.fromAndTerms(terms, remainingTerms, true);
+    }
+
+    static fromAndTerms(allTerms: Expression[]): Interval<number | bigint>[]
+    static fromAndTerms(allTerms: Expression[], remainingTerms: Expression[]): Interval<number | bigint>[]
+    static fromAndTerms(allTerms: Expression[], remainingTerms: Expression[], returnIfEmpty: true): Interval<number | bigint>[]
+    static fromAndTerms(allTerms: Expression[], remainingTerms?: Expression[], returnIfEmpty = false): Interval<number | bigint>[] {
+        if (!remainingTerms) {
+            remainingTerms = [];
+        }
+        let interval = this.fromAndTermsInternal(allTerms, remainingTerms, returnIfEmpty);
+        let intervals: Interval<number | bigint>[] = interval ? [interval] : [];
+        for (let i = remainingTerms.length - 1; i >= 0; i--) {
+            let term = remainingTerms[i];
             if (term instanceof BinaryExpression && term.left instanceof DotExpression && term.operator === "!=" && term.right instanceof NumberLiteral) {
                 const value = term.right.value;
+                // remove it from the remainingTerms.
+                remainingTerms.splice(i, 1);
                 //  found a != value
                 //  split any intervals it intersects.
                 intervals = intervals.map(interval => {
@@ -153,11 +171,7 @@ export class Interval<T extends number | bigint> extends Expression {
         }
         return intervals;
     }
-
-    static fromAndTerms(allTerms: Expression[]): Interval<number | bigint>
-    static fromAndTerms(allTerms: Expression[], remainingTerms: Expression[]): Interval<number | bigint> | null
-    static fromAndTerms(allTerms: Expression[], remainingTerms: Expression[], returnIfEmpty: true): Interval<number | bigint>
-    static fromAndTerms(allTerms: Expression[], remainingTerms?: Expression[], returnIfEmpty = false): Interval<number | bigint> | null {
+    static fromAndTermsInternal(allTerms: Expression[], remainingTerms?: Expression[], returnIfEmpty = false): Interval<number | bigint> | null {
         let integer = allTerms.some(isIntegerType);
         let min = new NumberLiteral(integer ? MIN_SIGNED_BIGINT : Number.NEGATIVE_INFINITY);
         let max = new NumberLiteral(integer ? MAX_UNSIGNED_BIGINT : Number.POSITIVE_INFINITY);

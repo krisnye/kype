@@ -113,6 +113,22 @@ export const simplify = memoize(function(e: Expression): Expression {
             }
         }
 
+        // see if interval parsing simplifies terms.
+        terms = terms.map(term => {
+            const [intervals, remaining] = Interval.fromAndTypeWithRemaining(term);
+            if (intervals.length > 0) {
+                const andTerms = term.split("&&");
+                if (remaining.length < andTerms.length) {
+                    // maybe combine and see if shorter.
+                    const intervalTerms = intervals.map(i => i.toTerms()).flat();
+                    if (remaining.length + intervalTerms.length < andTerms.length) {
+                        return joinExpressions([...intervalTerms, ...remaining], "&&");
+                    }
+                }
+            }
+            return term;
+        })
+
         e = joinExpressions(terms, "||");
     }
 
@@ -152,15 +168,7 @@ export const simplify = memoize(function(e: Expression): Expression {
     }
 
     if (e instanceof BinaryExpression) {
-        const DEBUG = e.left.toString() === `(((@ == -10) || ((@ >= -2) && (@ <= 0))) || ((@ >= 1) && (@ <= 2)))`;
-        if (DEBUG) {
-            debugger;
-        }
         let left = simplify(e.left);
-        if (DEBUG) {
-            console.log(`BEFORE: ${e.left}`);
-            console.log(`AFTER : ${left}`);
-        }
         let right = simplify(e.right);
         if (left instanceof TypeExpression && right instanceof TypeExpression) {
             return combineTypes(left, e.operator, right);
@@ -226,16 +234,24 @@ export const simplify = memoize(function(e: Expression): Expression {
             //  simplify Interval || Interval
             {
                 let [leftInterval, leftRemaining] = Interval.fromAndTypeWithRemaining(left);
-                if (leftInterval) {
-                    let [rightInterval, rightRemaining] = Interval.fromAndTypeWithRemaining(right);
-                    if (rightInterval) {
+                let [rightInterval, rightRemaining] = Interval.fromAndTypeWithRemaining(right);
+                if (leftInterval.length && rightInterval.length) {
+                    let merged = false;
+                    let intervals = [...leftInterval, ...rightInterval];
+                    for (let i = intervals.length - 2; i >= 0; i--) {
+                        let leftInterval = intervals[i];
+                        let rightInterval = intervals[i + 1];
                         // see if they overlap.
                         if (leftInterval.type === rightInterval.type && leftInterval.overlapsOrAdjacentIfInteger(rightInterval)) {
                             let combinedInterval = leftInterval.combine(rightInterval);
                             // now convert back to a type
                             // console.log({ left: left.toString(), right: right.toString(), combined: combinedInterval.toString() });
-                            return joinExpressions([combinedInterval.toType().proposition, ...leftRemaining, ...rightRemaining], "&&");
+                            intervals.splice(i, 2, combinedInterval);
+                            merged = true;
                         }
+                    }
+                    if (merged) {
+                        return joinExpressions([...intervals.map(i => i.toTerms()).flat(), ...leftRemaining, ...rightRemaining], "&&");
                     }
                 }
             }
