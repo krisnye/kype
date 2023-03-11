@@ -68,6 +68,7 @@ export async function isConsequentAsync(a: Expression, b: Expression): Promise<M
  * null if we cannot determine
  */
 export function isConsequent(a: Expression, b: Expression): Maybe {
+    debugger;
     if (a instanceof TypeExpression) {
         a = a.proposition;
     }
@@ -186,40 +187,32 @@ export function isConsequent(a: Expression, b: Expression): Maybe {
                     }
                 }
             }
+
         }
     }
 
-    //  A & B & C => C & D & E
-    //  if any term on the left results in a false on the right then false (not consequent)
-    //  if all terms on the right are true based on any term on the left then true (consequent)
-    //  otherwise null (unknown)
-    if (b instanceof BinaryExpression && b.operator === "&&" || a instanceof BinaryExpression && a.operator === "&&") {
-        let allTrue = true
-        for (let bTerm of b.splitExpressions("&&")) {
-            let bTermResult: boolean | null = null
-            for (let aTerm of a.splitExpressions("&&")) {
-                let aTermResult = isConsequent(aTerm, bTerm)
-                if (aTermResult === false) {
-                    return false
-                }
-                if (aTermResult === true) {
-                    bTermResult = true
-                    break
-                }
+    if (a instanceof BinaryExpression) {
+        if (a.operator === "&&") {
+            let left = isConsequent(a.left, b);
+            if (left !== null) {
+                return left;
             }
-            if (bTermResult !== true) {
-                allTrue = false
+            let right = isConsequent(a.right, b);
+            if (right !== null) {
+                return right;
             }
         }
-        return allTrue || null
+        if (a.operator === "||") {
+            return same(isConsequent(a.left, b), isConsequent(a.right, b))
+        }
     }
-
-    //  A & B => C & D
-    if (a instanceof BinaryExpression && a.operator === "||") {
-        return same(isConsequent(a.left, b), isConsequent(a.right, b))
-    }
-    if (b instanceof BinaryExpression && b.operator === "||") {
-        return max(isConsequent(a, b.left), isConsequent(a, b.right))
+    if (b instanceof BinaryExpression) {
+        if (b.operator === "&&") {
+            return min(isConsequent(a, b.left), isConsequent(a, b.right));
+        }
+        if (b.operator === "||") {
+            return max(isConsequent(a, b.left), isConsequent(a, b.right))
+        }
     }
     return null
 }
