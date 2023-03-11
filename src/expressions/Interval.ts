@@ -43,6 +43,10 @@ export class Interval<T extends number | bigint> extends Expression {
         }
     }
 
+    isUnconstrainedFloat() {
+        return !this.minExclusive && !this.maxExclusive && this.min === Number.NEGATIVE_INFINITY && this.max === Number.POSITIVE_INFINITY;
+    }
+
     isEmpty() {
         return this.min > this.max || this.min === this.max && (this.minExclusive || this.maxExclusive);
     }

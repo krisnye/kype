@@ -8,7 +8,7 @@ function testSimplify(inputString: string, expectedString: string) {
     let actual = simplify(input);
     let as = actual.toString();
     let es = expected.toString();
-    assert(as === es, `simplify(${input}), expected: ${es}, actual: ${as}`);
+    assert(as === es, `simplify(${input})\n  expect: ${es}\n  actual: ${as}\n`);
 }
 
 testSimplify("A && B || B", "B");
@@ -73,14 +73,22 @@ testSimplify("{ @ >= 0.0 && @ < 1.0 } * { @ > 2.0 && @ < 3.0 }", "{ @ > 0.0 && @
 testSimplify("{ @ >= 0.0 && @ < 1.0 } * { @ >= 2.0 && @ < 3.0 }", "{ @ >= 0.0 && @ < 3.0 }");
 testSimplify("{ @ >= 0.0 && @ < 1.0 } * { @ > 2.0 && @ <= 3.0 }", "{ @ >= 0.0 && @ < 3.0 }");
 testSimplify("{ @ >= -10.0 && @ < 10.0 } * { @ >= -5.0 && @ <= 3.0 }", "{ @ > -50.0 && @ <= 50.0 }");
+testSimplify("{ @ <= POS_INFINITY } * { @ <= POS_INFINITY }", "{ @ <= POS_INFINITY }");
+
+testSimplify("{ @ > 0.0 } * { @ < 0.0 }", "{ @ < 0.0 }");
+
 //  test float division
 testSimplify("{ @ >= 10.0 && @ <= 20.0 } / { @ >= 5.0 && @ <= 10.0 }", "{ @ >= 1.0 && @ <= 4.0 }");
 testSimplify("{ @ > -10.0 && @ <= 20.0 } / { @ >= 5.0 && @ <= 10.0 }", "{ @ > -2.0 && @ <= 4.0 }");
 testSimplify("{ @ >= 10.0 && @ <= 20.0 } / { @ >= -5.0 && @ <= 10.0 }", "{ @ <= -2.0 || @ >= 1.0 }");
 testSimplify("{ @ >= 2.0 && @ < 3.0 } / { @ >= -1.0 && @ < 4.0 }", "{ @ <= -2.0 || @ > 0.5 }");
-/////////////////////////////////////////////////////////////////////////////////////////////
-//  type float exponentiation
-testSimplify("{ @ >= 0.0 && @ <= 5.0 } ** { @ >= 2.0 && @ <= 3.0 }", "{ @ >= 0.0 && @ <= 125.0 }");
+testSimplify("{ @ <= POS_INFINITY } / { @ <= POS_INFINITY }", "{ @ <= POS_INFINITY }");
+testSimplify("{ @ > 0.0 } / { @ <= POS_INFINITY }", "{ @ <= POS_INFINITY }");
+testSimplify("{ @ > 20.0 } / { @ <= 10.0 }", "{ @ <= 0.0 || @ > 2.0 }");
+
+// /////////////////////////////////////////////////////////////////////////////////////////////
+// //  type float exponentiation
+// testSimplify("{ @ >= 0.0 && @ <= 5.0 } ** { @ >= 2.0 && @ <= 3.0 }", "{ @ >= 0.0 && @ <= 125.0 }");
 //  -2 ** 2 == 4
 //  -2 ** 3 == -8
 //  -2 ** 4 == 16
