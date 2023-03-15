@@ -181,6 +181,10 @@ export class Interval<T extends number | bigint> extends Expression {
         let max = new NumberLiteral(integer ? MAX_UNSIGNED_BIGINT : Number.POSITIVE_INFINITY);
         let minExclusive = false;
         let maxExclusive = false;
+        // console.log("-------------------------->  " + allTerms.join(","));
+        // if (allTerms.join(",") === "(@ <= -1),(@ >= 0),(@ <= 3)") {
+        //     debugger;
+        // }
         allTerms.forEach(term => {
             if (isIntegerType(term)) {
                 integer = true;
@@ -193,13 +197,25 @@ export class Interval<T extends number | bigint> extends Expression {
                     used = true;
                 }
                 else if (term.operator.startsWith(">")) {
-                    min = term.right;
-                    minExclusive = !term.operator.endsWith("=");
+                    let exclusive = !term.operator.endsWith("=");;
+                    if (term.right.value > min.value || term.right.value === min.value && exclusive) {
+                        min = term.right;
+                        minExclusive = exclusive
+                    }
                     used = true;
                 }
                 else if (term.operator.startsWith("<")) {
-                    max = term.right;
-                    maxExclusive = !term.operator.endsWith("=");
+                    let exclusive = !term.operator.endsWith("=");
+                    // console.log({
+                    //     max_value: max.value,
+                    //     term_right_value: term.right.value,
+                    //     exclusive,
+                    //     shouldReplace: term.right.value < max.value || term.right.value === max.value && exclusive,
+                    // });
+                    if (term.right.value < max.value || term.right.value === max.value && exclusive) {
+                        max = term.right;
+                        maxExclusive = exclusive;
+                    }
                     used = true;
                 }
             }

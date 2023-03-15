@@ -11,6 +11,7 @@ import { NumberLiteral, isIntegerLiteral } from "./expressions/NumberLiteral"
 import { TypeExpression } from "./expressions/TypeExpression"
 import { combineTypes } from "./combineTypes"
 import { Interval, Literal } from "./expressions"
+import { falseExpression, isFalse, isTrue, positiveInfinity, trueExpression } from "./constants"
 
 function find<T>(items: Iterable<T>, predicate: (value: T) => boolean): T | null {
     for (let item of items) {
@@ -19,14 +20,6 @@ function find<T>(items: Iterable<T>, predicate: (value: T) => boolean): T | null
         }
     }
     return null;
-}
-
-function isTrue(a: Expression) {
-    return a instanceof NumberLiteral && a.value !== 0;
-}
-
-function isFalse(a: Expression) {
-    return a instanceof NumberLiteral && a.value === 0;
 }
 
 function adjacentValuesToRange(e: Expression): Expression {
@@ -115,10 +108,14 @@ export const simplify = memoize(function(e: Expression): Expression {
 
         // see if interval parsing simplifies terms.
         terms = terms.map(term => {
+            // if (term.toString() === `(((@ <= -1) && (@ >= 0)) && (@ <= 3))`) {
+            //     console.log("TERM: " + term);
+            //     debugger;
+            // }
             const [intervals, remaining] = Interval.fromAndTypeWithRemaining(term);
             if (intervals.length > 0) {
                 const andTerms = term.split("&&");
-                if (remaining.length < andTerms.length) {
+                if (remaining.length <= andTerms.length) {
                     // maybe combine and see if shorter.
                     const intervalTerms = intervals.map(i => i.toTerms()).flat();
                     if (remaining.length + intervalTerms.length < andTerms.length) {
@@ -195,10 +192,10 @@ export const simplify = memoize(function(e: Expression): Expression {
 
         if (equals(left, right)) {
             if (e.operator === "==") {
-                return new NumberLiteral(1);
+                return trueExpression;
             }
             if (e.operator === "!=") {
-                return new NumberLiteral(0);
+                return falseExpression;
             }
             if (e.operator === "&&" || e.operator == "||") {
                 //  A && A => A
@@ -283,11 +280,11 @@ export const simplify = memoize(function(e: Expression): Expression {
                         (left.operator === ">=" && right.operator === "<=")
                     ) {
                         // return true?
-                        return new NumberLiteral(1.0);
+                        return new NumberLiteral(1n);
                     }
                 }
                 else if (left.operator === ">" && right.operator === "<" && left.right.isLessThan(right.right)) {
-                    return new BinaryExpression(left.left, "<=", new NumberLiteral(Number.POSITIVE_INFINITY));
+                    return new BinaryExpression(left.left, "<=", positiveInfinity);
                 }
             }
         }
@@ -300,6 +297,10 @@ export const simplify = memoize(function(e: Expression): Expression {
             }
             //  we only have to filter the right because we know after normalization
             //  that the right side will have the || (if it's on both... then we can't determine anyways)
+            if (isConsequent(left, right) === false) {
+                return falseExpression;
+            }
+
             let filteredRight = combineExpressions(right.split("||").filter(term => isConsequent(left, term) === null), "||");
             if (!filteredRight) {
                 return left;
@@ -308,6 +309,7 @@ export const simplify = memoize(function(e: Expression): Expression {
             {
                 right = filteredRight;
             }
+            
             if (left instanceof BinaryExpression &&
                 right instanceof BinaryExpression &&
                 equals(left.left, right.left) &&

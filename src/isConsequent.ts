@@ -68,7 +68,6 @@ export async function isConsequentAsync(a: Expression, b: Expression): Promise<M
  * null if we cannot determine
  */
 export function isConsequent(a: Expression, b: Expression): Maybe {
-    debugger;
     if (a instanceof TypeExpression) {
         a = a.proposition;
     }

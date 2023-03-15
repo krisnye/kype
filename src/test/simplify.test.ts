@@ -1,6 +1,7 @@
 import { strict as assert } from "assert";
 import { simplify } from "../simplify";
 import { parseExpression } from "../parser/parseExpression";
+import { normalize } from "../normalize";
 
 function testSimplify(inputString: string, expectedString: string) {
     let input = parseExpression(inputString);
@@ -25,12 +26,12 @@ testSimplify("(A || B) && C && !B", "!B && A && C");
 testSimplify("(A || B || C) && !B", "!B && (A || C)");
 testSimplify("(A || (B || C)) && !B", "!B && (A || C)");
 testSimplify("A > B || A < B", "A != B");
-testSimplify("A >= B || A < B", "1.0");
-testSimplify("B < A || A > 5.0 || A <= B", "1.0");
+testSimplify("A >= B || A < B", "1");
+testSimplify("B < A || A > 5.0 || A <= B", "1");
 testSimplify("(A <= 10.0 || A > 10.0) && A > B", "A > B");
-testSimplify("A != A", "0.0");
-testSimplify("A == A", "1.0");
-testSimplify("A != A && A > B", "0.0");
+testSimplify("A != A", "0");
+testSimplify("A == A", "1");
+testSimplify("A != A && A > B", "0");
 testSimplify("A && B || A && C", "(B || C) && A");
 
 //  simplifying also normalizes.
@@ -183,6 +184,11 @@ testSimplify(
 )
 
 testSimplify(`@ == -10.0 || @ >= -3.0 && @ < 5.0`, `@ == -10.0 || @ >= -3.0 && @ < 5.0`);
+
+//  This should evaluate to false.
+testSimplify(`@ >= 0 && @ <= 3 && @ < 0`, `0`);
+//  This should evaluate to never.
+testSimplify(`{ @ >= 0 && @ <= 3 && @ < 0 }`, `{ 0 }`);
 
 //  TODO:
 // testSimplify("{ @ <= 0.0 } && ({ @ >= 0.0 } || { @ == 1.0 })", "{ @ == 0.0 } || { @ == 1.0 }");

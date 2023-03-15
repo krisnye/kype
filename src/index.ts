@@ -6,3 +6,4 @@ export * from "./simplify";
 export * from "./toTypeExpression";
 export * from "./utility/index";
 export * from "./expressions/index";
+export * from "./constants";

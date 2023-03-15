@@ -9,14 +9,15 @@ import { Reference } from "../expressions/Reference";
 import { NumberLiteral } from "../expressions/NumberLiteral";
 import { DotExpression } from "../expressions/DotExpression";
 import { StringLiteral } from "../expressions";
+import { negativeInfinity, positiveInfinity } from "../constants";
 
 export function createParser() {
     return new Parser({
         Id: new TerminalParselet(({ value }) => {
             switch (value) {
                 case "@": return new DotExpression();
-                case "POS_INFINITY": return new NumberLiteral(Number.POSITIVE_INFINITY);
-                case "NEG_INFINITY": return new NumberLiteral(Number.NEGATIVE_INFINITY);
+                case "POS_INFINITY": return positiveInfinity;
+                case "NEG_INFINITY": return negativeInfinity;
                 default: return new Reference(value);
             }
         }),
