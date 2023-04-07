@@ -43,6 +43,12 @@ export class NumberLiteral extends Literal<number | bigint> {
 
     static operation(left: NumberLiteral, op: string, right: NumberLiteral) {
         let value = eval(`(${left.value} ${op} ${right.value})`);
+        if (value === true) {
+            value = 1n;
+        }
+        else if (value === false) {
+            value = 0n;
+        }
         return new NumberLiteral(value);
     }
 

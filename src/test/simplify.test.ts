@@ -1,7 +1,6 @@
 import { strict as assert } from "assert";
 import { simplify } from "../simplify";
 import { parseExpression } from "../parser/parseExpression";
-import { normalize } from "../normalize";
 
 function testSimplify(inputString: string, expectedString: string) {
     let input = parseExpression(inputString);
@@ -154,17 +153,6 @@ testSimplify("{ @ == 0 || @ == 1 }", "{ @ >= 0 && @ <= 1 }");
 testSimplify("{ @ == 1 || @ == 0 }", "{ @ >= 0 && @ <= 1 }");
 testSimplify("{ @ == 2 || @ == 3 || @ == 1 || @ == 0 }", "{ @ >= 0 && @ <= 3 }");
 
-//  test simplify of type comparison with other types
-testSimplify("{ @ < { @ < 10 } }", "{ @ <= 8 }");
-testSimplify("{ @ <= { @ < 10 } }", "{ @ <= 9 }");
-testSimplify("{ @ <= { @ <= 10 } }", "{ @ <= 10 }");
-testSimplify("{ @ < { @ <= 10 } }", "{ @ <= 9 }");
-
-testSimplify("{ @ > { @ > 10 } }", "{ @ >= 12 }");
-testSimplify("{ @ >= { @ > 10 } }", "{ @ >= 11 }");
-testSimplify("{ @ >= { @ >= 10 } }", "{ @ >= 10 }");
-testSimplify("{ @ > { @ >= 10 } }", "{ @ >= 11 }");
-
 //  test overlapping intervals
 testSimplify(
     `{ @ > 0 && @ < 10 || @ > 5 && @ < 20 }`,
@@ -192,3 +180,35 @@ testSimplify(`{ @ >= 0 && @ <= 3 && @ < 0 }`, `{ 0 }`);
 
 //  TODO:
 // testSimplify("{ @ <= 0.0 } && ({ @ >= 0.0 } || { @ == 1.0 })", "{ @ == 0.0 } || { @ == 1.0 }");
+
+//  test simplify of type comparison with other types
+testSimplify("{ @ < { @ < 10 } }", "{ @ <= 8 }");
+testSimplify("{ @ <= { @ < 10 } }", "{ @ <= 9 }");
+testSimplify("{ @ <= { @ <= 10 } }", "{ @ <= 10 }");
+testSimplify("{ @ < { @ <= 10 } }", "{ @ <= 9 }");
+
+testSimplify("{ @ > { @ > 10 } }", "{ @ >= 12 }");
+testSimplify("{ @ >= { @ > 10 } }", "{ @ >= 11 }");
+testSimplify("{ @ >= { @ >= 10 } }", "{ @ >= 10 }");
+testSimplify("{ @ > { @ >= 10 } }", "{ @ >= 11 }");
+
+testSimplify(`3 < 5`, `1`);
+testSimplify(`4 < 5`, `1`);
+testSimplify(`x <= x`, `1`);
+
+testSimplify(`(1 .. 10) < (20 .. 30)`, `1`);
+testSimplify(`(1 .. 10) > (20 .. 30)`, `0`);
+
+testSimplify(`{ { @ == 1 } < @ }`, `{ @ >= 2 }`);
+testSimplify(`{ { @ == 1 && (@.class == "Integer") } < @ }`, `{ @ >= 2 }`);
+testSimplify(`{ { @ == 1 && (@.class == "Integer") } < @ && (@.class == "Integer") }`, `{((@ >= 2) && (@.class == "Integer"))}`);
+
+testSimplify(`({(({(@ == 1)} && {(@.class == "Integer")}) < @)} && {(@.class == "Integer")})`, `{((@ >= 2) && (@.class == "Integer"))}`);
+
+testSimplify(`({(({((@ >= 1) && (@ <= 2))} && {(@.class == "Integer")}) < @)} && {(@.class == "Integer")})`, `{((@ >= 3) && (@.class == "Integer"))}`);
+
+// testSimplify(`1 + x + 3 + x + 4 + x`, `1`);
+
+//  make this work. a value > foo + a positive => a value still > foo
+testSimplify(`{ @ > foo && @ >= 1 && @ <= 4 } + { @ == 1 }`, `{ @ >= 2 && @ <= 5 }`);
+//                                                                               && @ > foo

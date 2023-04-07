@@ -121,7 +121,14 @@ function multiplyIntervals<T extends number | bigint>(a: Interval<T>, b: Interva
 }
 
 function exponentIntervals<T extends number | bigint>(a: Interval<T>, b: Interval<T>) {
-    return combineIntervals<T>(a, b, (a, b) => a ** b as T);
+    return combineIntervals<T>(a, b, (a, b) => {
+        if (typeof a === "number") {
+            return a ** Number(b) as T;
+        }
+        else {
+            return a ** b as T
+        }
+    });
 }
 
 function divideIntervals<T extends number | bigint>(a: Interval<T>, b: Interval<T>) {
@@ -150,8 +157,6 @@ export function combineTypes(left: TypeExpression, operator: BinaryOperator, rig
                 })
             ) as TypeExpression;
         case "*":
-            const name = `${left} ${operator} ${right}`;
-            const DEBUG = name === "{(@ > 0.0)} * {(@ < 0.0)}";
             return simplify(
                 foreachIntervalPair(left, right, multiplyIntervals)
             ) as TypeExpression;
@@ -193,7 +198,7 @@ function foreachIntervalPair<T extends number | bigint>(a: TypeExpression, b: Ty
     // console.log({ a: a.toString(), b: b.toString(), aInteger: })
     return foreachSplitRejoin(joinExpressions(Interval.fromOrType(a), "||"), joinExpressions(Interval.fromOrType(b), "||"), "||", (a, b) => {
         return callback(a as Interval<T>, b as Interval<T>);
-    })
+    });
 }
 
 function foreachSplitRejoin(a: Expression, b: Expression, operator: BinaryOperator, callback: (a: Expression, b: Expression) => Expression | null): Expression {

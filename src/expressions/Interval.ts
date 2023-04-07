@@ -15,6 +15,15 @@ export function isIntegerInterval(value: any): value is Interval<number> {
     return typeof value?.min === "bigint";
 }
 
+export function isInfinite(value: number | bigint): boolean {
+    if (typeof value === "number") {
+        return value === Number.POSITIVE_INFINITY || value === Number.NEGATIVE_INFINITY;
+    }
+    else {
+        return value >= MAX_UNSIGNED_BIGINT || value <= MIN_SIGNED_BIGINT;
+    }
+}
+
 export class Interval<T extends number | bigint> extends Expression {
 
     get sortOrder() { return -10; }
@@ -41,6 +50,14 @@ export class Interval<T extends number | bigint> extends Expression {
                 this.maxExclusive = false;
             }
         }
+    }
+
+    isPositive() {
+        return this.min > 0 || this.min == 0 && this.minExclusive;
+    }
+
+    isNegative() {
+        return this.max < 0 || this.max == 0 && this.maxExclusive;
     }
 
     isUnconstrainedFloat() {
@@ -231,6 +248,9 @@ export class Interval<T extends number | bigint> extends Expression {
     }
 
     static fromOrType(type: Expression): Interval<number | bigint>[] {
+        if (type instanceof Interval) {
+            return [type];
+        }
         if (type instanceof TypeExpression) {
             type = type.proposition;
         }

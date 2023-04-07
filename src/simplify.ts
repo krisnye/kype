@@ -10,7 +10,7 @@ import { joinExpressions } from "./utility/joinExpressions"
 import { NumberLiteral, isIntegerLiteral } from "./expressions/NumberLiteral"
 import { TypeExpression } from "./expressions/TypeExpression"
 import { combineTypes } from "./combineTypes"
-import { Interval, Literal } from "./expressions"
+import { DotExpression, Interval, isInfinite } from "./expressions"
 import { falseExpression, isFalse, isTrue, positiveInfinity, trueExpression } from "./constants"
 
 function find<T>(items: Iterable<T>, predicate: (value: T) => boolean): T | null {
@@ -57,7 +57,7 @@ function adjacentValuesToRange(e: Expression): Expression {
 }
 
 // A && B || A => A
-export const simplify = memoize(function(e: Expression): Expression {
+export const simplify = memoize(function (e: Expression): Expression {
     e = normalize(e);
 
     if (e instanceof TypeExpression) {
@@ -108,10 +108,6 @@ export const simplify = memoize(function(e: Expression): Expression {
 
         // see if interval parsing simplifies terms.
         terms = terms.map(term => {
-            // if (term.toString() === `(((@ <= -1) && (@ >= 0)) && (@ <= 3))`) {
-            //     console.log("TERM: " + term);
-            //     debugger;
-            // }
             const [intervals, remaining] = Interval.fromAndTypeWithRemaining(term);
             if (intervals.length > 0) {
                 const andTerms = term.split("&&");
@@ -171,27 +167,61 @@ export const simplify = memoize(function(e: Expression): Expression {
             return combineTypes(left, e.operator, right);
         }
 
-        if (right instanceof TypeExpression) {
+        if (right instanceof TypeExpression || right instanceof Interval) {
             if ([">", ">=", "<", "<="].includes(e.operator)) {
-                const intervals = Interval.fromOrType(right);
-                if (intervals.length === 1) {
-                    const interval = intervals[0];
-                    switch (e.operator) {
-                        case "<":
-                            return simplify(new BinaryExpression(left, "<", new NumberLiteral(interval.max)));
-                        case "<=":
-                            return simplify(new BinaryExpression(left, interval.maxExclusive ? "<" : "<=", new NumberLiteral(interval.max)));
-                        case ">":
-                            return simplify(new BinaryExpression(left, ">", new NumberLiteral(interval.min)));
-                        case ">=":
-                            return simplify(new BinaryExpression(left, interval.minExclusive ? ">" : ">=", new NumberLiteral(interval.min)));
+                const rightIntervals = Interval.fromOrType(right);
+                if (rightIntervals.length === 1) {
+                    const rightInterval = rightIntervals[0];
+                    if (left instanceof DotExpression && (
+                        e.operator.startsWith("<") && isInfinite(rightInterval.min)
+                        ||
+                        e.operator.startsWith(">") && isInfinite(rightInterval.max)
+                    )) {
+                        switch (e.operator) {
+                            case "<":
+                                return simplify(new BinaryExpression(left, "<", new NumberLiteral(rightInterval.max)));
+                            case "<=":
+                                return simplify(new BinaryExpression(left, rightInterval.maxExclusive ? "<" : "<=", new NumberLiteral(rightInterval.max)));
+                            case ">":
+                                const before = new BinaryExpression(left, ">", new NumberLiteral(rightInterval.min));
+                                const after = simplify(before);
+                                // console.log({ before: before.toString(), after: after.toString() });
+                                return after;
+                            case ">=":
+                                return simplify(new BinaryExpression(left, rightInterval.minExclusive ? ">" : ">=", new NumberLiteral(rightInterval.min)));
+                        }
+                    }
+
+                    const leftIntervals = Interval.fromOrType(left);
+                    if (leftIntervals.length === 1) {
+                        const leftInterval = leftIntervals[0];
+                        switch (e.operator) {
+                            case "<":
+                            case "<=":
+                                return simplify(
+                                    new BinaryExpression(
+                                        left instanceof DotExpression ? left : new NumberLiteral(leftInterval.max),
+                                        e.operator,
+                                        new NumberLiteral(rightInterval.min)
+                                    )
+                                );
+                            case ">":
+                            case ">=":
+                                return simplify(
+                                    new BinaryExpression(
+                                        left instanceof DotExpression ? left : new NumberLiteral(leftInterval.min),
+                                        e.operator,
+                                        new NumberLiteral(rightInterval.max)
+                                    )
+                                );
+                        }
                     }
                 }
             }
         }
 
         if (equals(left, right)) {
-            if (e.operator === "==") {
+            if (e.operator === "==" || e.operator === "<=" || e.operator === ">=") {
                 return trueExpression;
             }
             if (e.operator === "!=") {
@@ -260,10 +290,6 @@ export const simplify = memoize(function(e: Expression): Expression {
                     if (left.operator === "<=" && right.operator === ">=" && (left.right.value + 2n) === right.right.value) {
                         return new BinaryExpression(left.left, "!=", new NumberLiteral(left.right.value + 1n));
                     }
-                    // if (left.operator === "==" && right.operator === "==" && (left.right.value + 1n) === right.right.value) {
-                    //     console.log({ left: left.toString(), right: right.toString() });
-                    //     // return new Interval(left.right.value, right.right.value);
-                    // }
                 }
 
                 if (equals(left.right, right.right)) {
@@ -305,11 +331,10 @@ export const simplify = memoize(function(e: Expression): Expression {
             if (!filteredRight) {
                 return left;
             }
-            else
-            {
+            else {
                 right = filteredRight;
             }
-            
+
             if (left instanceof BinaryExpression &&
                 right instanceof BinaryExpression &&
                 equals(left.left, right.left) &&
