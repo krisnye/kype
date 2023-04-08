@@ -212,3 +212,6 @@ testSimplify(`({(({((@ >= 1) && (@ <= 2))} && {(@.class == "Integer")}) < @)} &&
 //  make this work. a value > foo + a positive => a value still > foo
 testSimplify(`{ @ > foo && @ >= 1 && @ <= 4 } + { @ == 1 }`, `{ @ >= 2 && @ <= 5 }`);
 //                                                                               && @ > foo
+
+testSimplify(`{ @.length == 3 }.length`, `{(@ == 3)}`);
+testSimplify(`({((@.length.class == "Integer") && (@.length == 1))} && {(@.class == "Array")}).length`, `{@ == 1 && @.class == "Integer"}`);

@@ -9,8 +9,8 @@ export class MemberExpression extends Expression {
     readonly object: Expression;
     readonly property: Expression;
 
-    constructor(object: Expression, property: Expression) {
-        super();
+    constructor(object: Expression, property: Expression, source?: unknown) {
+        super(source);
         this.object = object;
         this.property = property;
     }

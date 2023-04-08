@@ -6,7 +6,7 @@ export class Reference extends Expression {
     get sortOrder() { return 4; }
     readonly name: string;
 
-    constructor(name: string, kind = ExpressionKind.Unknown, source?: unknown) {
+    constructor(name: string, source?: unknown, kind = ExpressionKind.Unknown) {
         super(source);
         this.name = name;
         this.kind = kind;

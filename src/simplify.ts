@@ -10,8 +10,9 @@ import { joinExpressions } from "./utility/joinExpressions"
 import { NumberLiteral, isIntegerLiteral } from "./expressions/NumberLiteral"
 import { TypeExpression } from "./expressions/TypeExpression"
 import { combineTypes } from "./combineTypes"
-import { DotExpression, Interval, isInfinite } from "./expressions"
+import { DotExpression, Interval, isInfinite, MemberExpression } from "./expressions"
 import { falseExpression, isFalse, isTrue, positiveInfinity, trueExpression } from "./constants"
+import { traverse } from "@glas/traverse"
 
 function find<T>(items: Iterable<T>, predicate: (value: T) => boolean): T | null {
     for (let item of items) {
@@ -56,6 +57,20 @@ function adjacentValuesToRange(e: Expression): Expression {
     return e;
 }
 
+function replaceBinaryExpressionLeft(root: BinaryExpression, find: Expression, replace: Expression): Expression | null {
+    let found = false;
+    let findString = find.toString();
+    let left = traverse(root.left, {
+        leave(node) {
+            if (node.toString() === findString) {
+                found = true;
+                return replace;
+            }
+        }
+    })
+    return found ? new BinaryExpression(left, root.operator, root.right) : null;
+}
+
 // A && B || A => A
 export const simplify = memoize(function (e: Expression): Expression {
     e = normalize(e);
@@ -63,6 +78,26 @@ export const simplify = memoize(function (e: Expression): Expression {
     if (e instanceof TypeExpression) {
         let proposition = simplify(e.proposition);
         return proposition === e.proposition ? e : new TypeExpression(proposition);
+    }
+
+    if (e instanceof MemberExpression) {
+        for (const known of e.object.split("&&")) {
+            if (known instanceof TypeExpression) {
+                let replace = new DotExpression();
+                let find = new MemberExpression(replace, e.property);
+                let found: Expression[] = [];
+                for (const prop of known.proposition.split("&&")) {
+                    // really, we want to replace ANY found proposition on the left with a dot.
+                    if (prop instanceof BinaryExpression) {
+                        let replaced = replaceBinaryExpressionLeft(prop, find, replace);
+                        if (replaced) {
+                            found.push(replaced);
+                        }
+                    }
+                }
+                return simplify(new TypeExpression(joinExpressions(found, "&&")));
+            }
+        }
     }
 
     {
