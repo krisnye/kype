@@ -6,6 +6,10 @@ Type Inference Library
 [x] Figure out how to type multiplied values (@ >= 5) * (@ >= 10)
 Infer Type for Member Expression
 
+## Type comparison
+
+    { 0 .. 10 } < { 20 .. 30 }  ->  true
+    { 0 .. 10 } < { 0 .. 30 }   ->  null
 
 ## Types of Runtime Errors
 

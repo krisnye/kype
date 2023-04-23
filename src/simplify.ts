@@ -73,6 +73,11 @@ function replaceBinaryExpressionLeft(root: BinaryExpression, find: Expression, r
 
 // A && B || A => A
 export const simplify = memoize(function (e: Expression): Expression {
+    if (!e) {
+        debugger;
+        console.log(`${e}`);
+    }
+
     e = normalize(e);
 
     if (e instanceof TypeExpression) {
@@ -95,7 +100,12 @@ export const simplify = memoize(function (e: Expression): Expression {
                         }
                     }
                 }
-                return simplify(new TypeExpression(joinExpressions(found, "&&")));
+                if (found.length > 0) {
+                    let joined = joinExpressions(found, "&&");
+                    let type = new TypeExpression(joined);
+                    let simplified = simplify(type);
+                    return simplified;
+                }
             }
         }
     }
@@ -119,7 +129,9 @@ export const simplify = memoize(function (e: Expression): Expression {
             }
         }
         terms = terms.map(adjacentValuesToRange);
+        const before = e;
         e = joinExpressions(terms, "&&");
+        const after = e;
     }
 
     {
@@ -204,8 +216,12 @@ export const simplify = memoize(function (e: Expression): Expression {
 
         if (right instanceof TypeExpression || right instanceof Interval) {
             if ([">", ">=", "<", "<="].includes(e.operator)) {
+                const DEBUG = right.toString() === `{(@ == from.length)}`;
+                if (DEBUG) {
+                    debugger;
+                }
                 const rightIntervals = Interval.fromOrType(right);
-                if (rightIntervals.length === 1) {
+                if (right.split("||").length === 1) {
                     const rightInterval = rightIntervals[0];
                     if (left instanceof DotExpression && (
                         e.operator.startsWith("<") && isInfinite(rightInterval.min)
@@ -214,41 +230,69 @@ export const simplify = memoize(function (e: Expression): Expression {
                     )) {
                         switch (e.operator) {
                             case "<":
-                                return simplify(new BinaryExpression(left, "<", new NumberLiteral(rightInterval.max)));
+                                if (!isInfinite(rightInterval.max)) {
+                                    return simplify(new BinaryExpression(left, "<", new NumberLiteral(rightInterval.max)));
+                                }
+                                break;
                             case "<=":
-                                return simplify(new BinaryExpression(left, rightInterval.maxExclusive ? "<" : "<=", new NumberLiteral(rightInterval.max)));
+                                if (!isInfinite(rightInterval.max)) {
+                                    return simplify(new BinaryExpression(left, rightInterval.maxExclusive ? "<" : "<=", new NumberLiteral(rightInterval.max)));
+                                }
+                                break;
                             case ">":
-                                const before = new BinaryExpression(left, ">", new NumberLiteral(rightInterval.min));
-                                const after = simplify(before);
-                                // console.log({ before: before.toString(), after: after.toString() });
-                                return after;
+                                if (!isInfinite(rightInterval.min)) {
+                                    const before = new BinaryExpression(left, ">", new NumberLiteral(rightInterval.min));
+                                    const after = simplify(before);
+                                    // console.log({ before: before.toString(), after: after.toString() });
+                                    return after;
+                                }
+                                break;
                             case ">=":
-                                return simplify(new BinaryExpression(left, rightInterval.minExclusive ? ">" : ">=", new NumberLiteral(rightInterval.min)));
+                                if (!isInfinite(rightInterval.min)) {
+                                    return simplify(new BinaryExpression(left, rightInterval.minExclusive ? ">" : ">=", new NumberLiteral(rightInterval.min)));
+                                }
+                                break;
                         }
                     }
 
                     const leftIntervals = Interval.fromOrType(left);
                     if (leftIntervals.length === 1) {
                         const leftInterval = leftIntervals[0];
+                        const leftInfinite = isInfinite(leftInterval.min) && isInfinite(leftInterval.max);
+                        const overlaps = leftInterval.overlapsOrAdjacentIfInteger(rightInterval);
+                        const leftType = left instanceof TypeExpression;
+                        const rightType = right instanceof TypeExpression;
                         switch (e.operator) {
                             case "<":
                             case "<=":
-                                return simplify(
-                                    new BinaryExpression(
-                                        left instanceof DotExpression ? left : new NumberLiteral(leftInterval.max),
-                                        e.operator,
-                                        new NumberLiteral(rightInterval.min)
-                                    )
-                                );
+                                {
+                                    const rightValue = rightType ? rightInterval.max : rightInterval.min;
+                                    if (!isInfinite(rightValue)) {
+                                        return simplify(
+                                            new BinaryExpression(
+                                                left instanceof DotExpression ? left : new NumberLiteral(leftInterval.max),
+                                                e.operator,
+                                                new NumberLiteral(rightValue)
+                                            )
+                                        );
+                                    }
+                                    break;
+                                }
                             case ">":
                             case ">=":
-                                return simplify(
-                                    new BinaryExpression(
-                                        left instanceof DotExpression ? left : new NumberLiteral(leftInterval.min),
-                                        e.operator,
-                                        new NumberLiteral(rightInterval.max)
-                                    )
-                                );
+                                {
+                                    const rightValue = rightType ? rightInterval.min : rightInterval.max;
+                                    if (!isInfinite(rightValue)) {
+                                        return simplify(
+                                            new BinaryExpression(
+                                                left instanceof DotExpression ? left : new NumberLiteral(leftInterval.min),
+                                                e.operator,
+                                                new NumberLiteral(rightValue)
+                                            )
+                                        );
+                                    }
+                                    break;
+                                }
                         }
                     }
                 }

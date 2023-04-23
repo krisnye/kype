@@ -205,7 +205,7 @@ testSimplify(`{ { @ == 1 && (@.class == "Integer") } < @ && (@.class == "Integer
 
 testSimplify(`({(({(@ == 1)} && {(@.class == "Integer")}) < @)} && {(@.class == "Integer")})`, `{((@ >= 2) && (@.class == "Integer"))}`);
 
-testSimplify(`({(({((@ >= 1) && (@ <= 2))} && {(@.class == "Integer")}) < @)} && {(@.class == "Integer")})`, `{((@ >= 3) && (@.class == "Integer"))}`);
+testSimplify(`({(({((@ >= 1) && (@ <= 2))} && {(@.class == "Integer")}) < @)} && {(@.class == "Integer")})`, `{((@ >= 2) && (@.class == "Integer"))}`);
 
 // testSimplify(`1 + x + 3 + x + 4 + x`, `1`);
 
@@ -215,3 +215,13 @@ testSimplify(`{ @ > foo && @ >= 1 && @ <= 4 } + { @ == 1 }`, `{ @ >= 2 && @ <= 5
 
 testSimplify(`{ @.length == 3 }.length`, `{(@ == 3)}`);
 testSimplify(`({((@.length.class == "Integer") && (@.length == 1))} && {(@.class == "Array")}).length`, `{@ == 1 && @.class == "Integer"}`);
+
+//  TODO: Split this up.
+testSimplify(`({((@ >= ({(@ == 0)})) && ((@ < ({(@ >= 0)})) && (@ < to.length)))})`, `{(((@ < to.length) && (@ >= 0)) && (@ < {(@ >= 0)}))}`);
+testSimplify(`@ < ({(@ >= 0)})`, `@ < ({(@ >= 0)})`);
+
+testSimplify('{@.length == from.length}.length', '{@ == from.length}');
+
+//  This should NOT simplify down to just @ >= 0
+testSimplify('{@ < {@ == from.length} }', '{@ < {@ == from.length} }');
+

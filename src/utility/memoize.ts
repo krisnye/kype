@@ -1,10 +1,10 @@
 
 export function memoize<A extends object, B>(fn: (a: A) => B, cacheResultAsKey = false, cache: WeakMap<A, B> = new WeakMap()): (a: A) => B {
     return function(arg) {
-        if (arg == null && typeof arg === "object") {
+        if (arg == null) {
             return fn(arg);
         }
-        try {
+        // try {
         let result = cache.get(arg);
         if (result === undefined) {
             cache.set(arg, result = fn(arg));
@@ -13,10 +13,10 @@ export function memoize<A extends object, B>(fn: (a: A) => B, cacheResultAsKey =
             }
         }
         return result;
-        }
-        catch(e) {
-            console.log("Error?", arg, typeof arg);
-            throw e;
-        }
+        // }
+        // catch(e) {
+        //     console.log("Error: " + arg);
+        //     throw e;
+        // }
     }
 }
