@@ -188,9 +188,9 @@ export function isConsequent(a: Expression, b: Expression): Maybe {
             }
 
         }
-    }
 
-    if (a instanceof BinaryExpression) {
+        // transitive checks here.
+
         if (a.operator === "&&") {
             let left = isConsequent(a.left, b);
             if (left !== null) {
@@ -205,6 +205,7 @@ export function isConsequent(a: Expression, b: Expression): Maybe {
             return same(isConsequent(a.left, b), isConsequent(a.right, b))
         }
     }
+
     if (b instanceof BinaryExpression) {
         if (b.operator === "&&") {
             return min(isConsequent(a, b.left), isConsequent(a, b.right));

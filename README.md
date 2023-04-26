@@ -85,3 +85,11 @@ Files are always upper case
 - Compile Self
 - Compile Dependents
 - Update Compiled External Details
+
+## Graph Ordering for Comparisons
+
+a   <   d   <=  f   <   h
+=       =       =       =
+b       e       g       i
+=
+c

@@ -64,7 +64,8 @@ export function testIsConsequent() {
 
     //  --> 
 
-    // //  test which can only be solved by z3
-    // testConsequent(`a > b && b > c`, `a > c`, true, true);
+    //  test which can only be solved by z3
+    //  add transitive logic.
+    testConsequent(`a > b && b > c`, `a > c`, true);
     // testConsequent(`a > b && b > c && c > d`, `a > d`, true, true);
 }
