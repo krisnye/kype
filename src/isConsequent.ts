@@ -1,3 +1,4 @@
+import { ComparisonGraph, getComparisonGraphMap, isTransitiveOperator } from "./ComparisonGraph";
 import { TypeExpression } from "./expressions";
 import { BinaryExpression } from "./expressions/BinaryExpression";
 import { Expression } from "./expressions/Expression";
@@ -188,9 +189,7 @@ export function isConsequent(a: Expression, b: Expression): Maybe {
             }
 
         }
-    }
 
-    if (a instanceof BinaryExpression) {
         if (a.operator === "&&") {
             let left = isConsequent(a.left, b);
             if (left !== null) {
@@ -205,11 +204,19 @@ export function isConsequent(a: Expression, b: Expression): Maybe {
             return same(isConsequent(a.left, b), isConsequent(a.right, b))
         }
     }
+
     if (b instanceof BinaryExpression) {
-        if (b.operator === "&&") {
+        if (isTransitiveOperator(b.operator)) {
+            const graphs = getComparisonGraphMap(a);
+            const graphNode = graphs.get(b.left.toString());
+            if (graphNode) {
+                return graphNode.isConsequent(b.operator, b.right);
+            }
+        }
+        else if (b.operator === "&&") {
             return min(isConsequent(a, b.left), isConsequent(a, b.right));
         }
-        if (b.operator === "||") {
+        else if (b.operator === "||") {
             return max(isConsequent(a, b.left), isConsequent(a, b.right))
         }
     }

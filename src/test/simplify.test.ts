@@ -26,6 +26,7 @@ testSimplify("(A || B || C) && !B", "!B && (A || C)");
 testSimplify("(A || (B || C)) && !B", "!B && (A || C)");
 testSimplify("A > B || A < B", "A != B");
 testSimplify("A >= B || A < B", "1");
+
 testSimplify("B < A || A > 5.0 || A <= B", "1");
 testSimplify("(A <= 10.0 || A > 10.0) && A > B", "A > B");
 testSimplify("A != A", "0");

@@ -1,20 +1,15 @@
 import { strict as assert } from "assert";
-import { isConsequentAsync, isConsequent } from "../isConsequent";
+import { isConsequent } from "../isConsequent";
 import { parseExpression } from "../parser/parseExpression";
-import { initZ3Context } from "../z3/toZ3";
 
 function testConsequent(astring: string, bstring: string, ab_expected: true | false | null) {
     const a = parseExpression(astring);
     const b = parseExpression(bstring);
     const ab_actual = isConsequent(a, b);
-    // const ba_actual = isConsequentAsync(b, a);
     assert.equal(ab_actual, ab_expected, `\n${a} => ${b}, expected ${ab_expected}, actual: ${ab_actual}`);
-    // assert.equal(ba_actual, ba_expected, `\n${b} => ${a}, expected ${ba_expected}, actual: ${ba_actual}`);
 }
 
 export function testIsConsequent() {
-    // initZ3Context();
-
     testConsequent("foo > 1.0", "foo > 0.0", true);
     testConsequent("foo < 1.0", "foo < 2.0", true);
     testConsequent("foo >= 1.0", "foo >= 0.0", true);
@@ -62,9 +57,15 @@ export function testIsConsequent() {
         true
     );
 
-    //  --> 
+    //  transitive logic.
+    testConsequent(`a > b && b > c`, `a > c`, true);
+    testConsequent(`a > b && b > c && c > d`, `a > d`, true);
+    testConsequent(`a > b && b > c`, `a < c`, false);
+    testConsequent(`a > b && b > c`, `a == c`, false);
+    testConsequent(`a > b && b >= c`, `a > c`, true);
+    testConsequent(`a >= b && b > c`, `a > c`, true);
+    testConsequent(`a >= b && b >= c`, `a > c`, null);
+    testConsequent(`a >= b && b > c && c >= d`, `a > d`, true);
+    testConsequent(`a >= b && b > c && c >= d`, `a <= d`, false);
 
-    // //  test which can only be solved by z3
-    // testConsequent(`a > b && b > c`, `a > c`, true, true);
-    // testConsequent(`a > b && b > c && c > d`, `a > d`, true, true);
 }

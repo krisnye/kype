@@ -198,10 +198,6 @@ export class Interval<T extends number | bigint> extends Expression {
         let max = new NumberLiteral(integer ? MAX_UNSIGNED_BIGINT : Number.POSITIVE_INFINITY);
         let minExclusive = false;
         let maxExclusive = false;
-        // console.log("-------------------------->  " + allTerms.join(","));
-        // if (allTerms.join(",") === "(@ <= -1),(@ >= 0),(@ <= 3)") {
-        //     debugger;
-        // }
         allTerms.forEach(term => {
             if (isIntegerType(term)) {
                 integer = true;
