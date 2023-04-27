@@ -73,11 +73,6 @@ function replaceBinaryExpressionLeft(root: BinaryExpression, find: Expression, r
 
 // A && B || A => A
 export const simplify = memoize(function (e: Expression): Expression {
-    if (!e) {
-        debugger;
-        console.log(`${e}`);
-    }
-
     e = normalize(e);
 
     if (e instanceof TypeExpression) {
@@ -216,10 +211,6 @@ export const simplify = memoize(function (e: Expression): Expression {
 
         if (right instanceof TypeExpression || right instanceof Interval) {
             if ([">", ">=", "<", "<="].includes(e.operator)) {
-                const DEBUG = right.toString() === `{(@ == from.length)}`;
-                if (DEBUG) {
-                    debugger;
-                }
                 const rightIntervals = Interval.fromOrType(right);
                 if (right.split("||").length === 1) {
                     const rightInterval = rightIntervals[0];
