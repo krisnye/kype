@@ -209,11 +209,6 @@ export function isConsequent(a: Expression, b: Expression): Maybe {
         if (isTransitiveOperator(b.operator)) {
             const graphs = getComparisonGraphMap(a);
             const graphNode = graphs.get(b.left.toString());
-            const CHECK = `${a} -> ${b}`;
-            if (CHECK === "((a > b) && (b > c)) -> (a > c)") {                
-                console.log(CHECK);
-                debugger;
-            }
             if (graphNode) {
                 return graphNode.isConsequent(b.operator, b.right);
             }

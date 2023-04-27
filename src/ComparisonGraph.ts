@@ -3,19 +3,11 @@ import { Maybe } from "./isConsequent";
 import { memoize } from "./utility";
 
 const transitiveOperators = {
-    "==": { "==": true, ">=": null, "<=": null, "<": false, ">": false },
-    "<": { "==": false, ">=": false, "<=": null, "<": true, ">": false },
-    ">": { "==": false, ">=": null, "<=": false, "<": false, ">": true },
-    "<=": { "==": true, ">=": null, "<=": true, "<": true, ">": false },
-    ">=": { "==": true, ">=": true, "<=": null, "<": false, ">": true },
-} as const;
-
-const transitiveOperatorsReverse = {
-    "==": "==",
-    "<": ">",
-    ">": "<",
-    "<=": ">=",
-    ">=": "<=",
+    "==": { positive: ["=="], negative: ["<", ">"], reverse: "==", unequal: false },
+    "<":  { positive: ["<=", "<", "=="], negative: ["==", ">", ">="], reverse: ">=", unequal: true },
+    ">":  { positive: [">=", ">", "=="], negative: ["==", "<", "<="], reverse: "<=", unequal: true },
+    "<=": { positive: ["<=", "<", "=="], negative: [">"], reverse: ">", unequal: false },
+    ">=": { positive: [">=", ">", "=="], negative: ["<"], reverse: "<", unequal: false },
 } as const;
 
 const transitiveOperatorsRecurse = {
@@ -45,24 +37,39 @@ export class ComparisonGraph {
     ) {
     }
 
-    private hasRightExpression(op: TransitiveOperator, rightString: string, negate = false, set = new Set<string>()): boolean {
+    /**
+     * @returns -1 if no right expression,
+     * >= 0 if right expression and value is how many of the intermediate operators were unequal operators,
+     */
+    private getRightExpressionUnequalCount(op: TransitiveOperator, rightString: string, unequalCount = 0): number {
         const ops = transitiveOperators[op];
-        for (const [otherOp, otherConsequent] of Object.entries(ops)) {
-            if (otherConsequent === !negate) {
-                for (const other of this[otherOp as TransitiveOperator]) {
-                    if (other.stringValue === rightString) {
-                        return true;
-                    }
-                    if (!set.has(other.stringValue)) {
-                        set.add(other.stringValue);
-                        // recurse, but only the first time we find this value.
-                        const recurseOp = transitiveOperatorsRecurse[op];
-                        const recurseValue = other.hasRightExpression(recurseOp, rightString, negate, set);
-                        if (recurseValue !== null) {
-                            return recurseValue;
-                        }
-                    }
+        for (const otherOp of ops.positive) {
+            const newUnequalCount = unequalCount + (transitiveOperators[otherOp].unequal ? 1 : 0);
+            for (const other of this[otherOp]) {
+                if (other.stringValue === rightString) {
+                    return newUnequalCount;
                 }
+                // recurse, but only the first time we find this value.
+                const recurseOp = transitiveOperatorsRecurse[op];
+                const recurseValue = other.getRightExpressionUnequalCount(recurseOp, rightString, newUnequalCount);
+                if (recurseValue !== null) {
+                    return recurseValue;
+                }
+            }
+        }
+        return -1;
+    }
+
+    private hasRightExpression(op: TransitiveOperator, rightString: string): boolean {
+        const unequalCount = this.getRightExpressionUnequalCount(op, rightString);
+        if (unequalCount >= 0) {
+            if (transitiveOperators[op].unequal) {
+                if (unequalCount > 0) {
+                    return true;
+                }
+            }
+            else {
+                return true;
             }
         }
         return false;
@@ -70,11 +77,13 @@ export class ComparisonGraph {
 
     isConsequent(op: TransitiveOperator, right: Expression): Maybe {
         const rightString = right.toString();
-        if (this.hasRightExpression(op, rightString, false)) {
+        if (this.hasRightExpression(op, rightString)) {
             return true;
         }
-        if (this.hasRightExpression(op, rightString, true)) {
-            return false;
+        for (const negateOp of transitiveOperators[op].negative) {
+            if (this.hasRightExpression(negateOp, rightString)) {
+                return false;
+            }
         }
         return null;
     }
@@ -96,7 +105,7 @@ export const getComparisonGraphMap = memoize((root: Expression): Map<string,Comp
             let aGraph = getGraph(e.left);
             let bGraph = getGraph(e.right);
             aGraph[e.operator].add(bGraph);
-            bGraph[transitiveOperatorsReverse[e.operator]].add(aGraph);
+            bGraph[transitiveOperators[e.operator].reverse].add(aGraph);
         }
     }
     return graphs;
