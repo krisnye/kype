@@ -10,14 +10,6 @@ const transitiveOperators = {
     ">=": { positive: [">=", ">", "=="], negative: ["<"], reverse: "<", unequal: false },
 } as const;
 
-const transitiveOperatorsRecurse = {
-    "==": "==",
-    "<": "<=",
-    ">": ">=",
-    "<=": "<=",
-    ">=": ">=",
-} as const;
-
 type TransitiveOperator = keyof typeof transitiveOperators;
 
 export function isTransitiveOperator(op: string): op is TransitiveOperator {
@@ -49,9 +41,7 @@ export class ComparisonGraph {
                 if (other.stringValue === rightString) {
                     return newUnequalCount;
                 }
-                // recurse, but only the first time we find this value.
-                const recurseOp = transitiveOperatorsRecurse[op];
-                const recurseValue = other.getRightExpressionUnequalCount(recurseOp, rightString, newUnequalCount);
+                const recurseValue = other.getRightExpressionUnequalCount(op, rightString, newUnequalCount);
                 if (recurseValue !== null) {
                     return recurseValue;
                 }
