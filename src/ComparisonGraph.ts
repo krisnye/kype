@@ -4,7 +4,9 @@ import { memoize } from "./utility";
 
 const transitiveOperators = {
     "==": { positive: ["=="], negative: ["<", ">"], reverse: "==", unequal: false },
+    //  for <, the chain of <=, <, == will only be accepted if there is at least one < within it (unequal = true)
     "<":  { positive: ["<=", "<", "=="], negative: ["==", ">", ">="], reverse: ">=", unequal: true },
+    //  for >, the chain of >=, >, == will only be accepted if there is at least one > within it (unequal = true)
     ">":  { positive: [">=", ">", "=="], negative: ["==", "<", "<="], reverse: "<=", unequal: true },
     "<=": { positive: ["<=", "<", "=="], negative: [">"], reverse: ">", unequal: false },
     ">=": { positive: [">=", ">", "=="], negative: ["<"], reverse: "<", unequal: false },
