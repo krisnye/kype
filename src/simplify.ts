@@ -10,7 +10,7 @@ import { joinExpressions } from "./utility/joinExpressions"
 import { NumberLiteral, isIntegerLiteral } from "./expressions/NumberLiteral"
 import { TypeExpression } from "./expressions/TypeExpression"
 import { combineTypes } from "./combineTypes"
-import { DotExpression, Interval, isInfinite, MemberExpression } from "./expressions"
+import { DotExpression, Interval, isInfinite } from "./expressions"
 import { falseExpression, isFalse, isTrue, positiveInfinity, trueExpression } from "./constants"
 import { traverse } from "@glas/traverse"
 
@@ -78,31 +78,6 @@ export const simplify = memoize(function (e: Expression): Expression {
     if (e instanceof TypeExpression) {
         let proposition = simplify(e.proposition);
         return proposition === e.proposition ? e : new TypeExpression(proposition);
-    }
-
-    if (e instanceof MemberExpression) {
-        for (const known of e.object.split("&&")) {
-            if (known instanceof TypeExpression) {
-                let replace = new DotExpression();
-                let find = new MemberExpression(replace, e.property);
-                let found: Expression[] = [];
-                for (const prop of known.proposition.split("&&")) {
-                    // really, we want to replace ANY found proposition on the left with a dot.
-                    if (prop instanceof BinaryExpression) {
-                        let replaced = replaceBinaryExpressionLeft(prop, find, replace);
-                        if (replaced) {
-                            found.push(replaced);
-                        }
-                    }
-                }
-                if (found.length > 0) {
-                    let joined = joinExpressions(found, "&&");
-                    let type = new TypeExpression(joined);
-                    let simplified = simplify(type);
-                    return simplified;
-                }
-            }
-        }
     }
 
     {

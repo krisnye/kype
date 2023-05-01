@@ -68,4 +68,9 @@ export function testIsConsequent() {
     testConsequent(`a >= b && b > c && c >= d`, `a > d`, true);
     testConsequent(`a >= b && b > c && c >= d`, `a <= d`, false);
 
+    //  relative comparisons to values with literal equals.
+    testConsequent(`A == C && C == 0 && B == D && D == 1`, `A < B`, true);
+
+    //  relative comparisons when we know result with equivalent.
+    testConsequent(`A < B && B == C`, `A < C`, true);
 }

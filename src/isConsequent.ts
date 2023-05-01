@@ -1,5 +1,5 @@
-import { ComparisonGraph, getComparisonGraphMap, isTransitiveOperator } from "./ComparisonGraph";
-import { TypeExpression } from "./expressions";
+import { ComparisonGraph, getComparisonGraphMap, isTransitiveOperator, transitiveOperators } from "./ComparisonGraph";
+import { NumberLiteral, TypeExpression } from "./expressions";
 import { BinaryExpression } from "./expressions/BinaryExpression";
 import { Expression } from "./expressions/Expression";
 import { Literal } from "./expressions/Literal";
@@ -189,7 +189,41 @@ export function isConsequent(a: Expression, b: Expression): Maybe {
             }
 
         }
+    }
 
+    if (b instanceof BinaryExpression) {
+        if (isTransitiveOperator(b.operator)) {
+            const graphs = getComparisonGraphMap(a);
+            const graphNode = graphs.get(b.left.toString());
+            if (graphNode) {
+                const result = graphNode.isConsequent(b.operator, b.right);
+                if (result !== null) {
+                    return result;
+                }
+            }
+
+            function getLiteralValue(value: Expression): NumberLiteral | undefined {
+                if (value instanceof NumberLiteral) {
+                    return value;
+                }
+                return graphs.get(value.toString())?.getEquivalentValues().find(a => a instanceof Literal) as NumberLiteral | undefined;
+            }
+            const bLeft = getLiteralValue(b.left);
+            const bRight = getLiteralValue(b.right);
+            if (bLeft && bRight) {
+                // we can do an eval comparison on the actual values.
+                const result = transitiveOperators[b.operator].compare(bLeft.value, bRight.value);
+                return result
+            }
+        }
+        else if (b.operator === "&&") {
+            return min(isConsequent(a, b.left), isConsequent(a, b.right));
+        }
+        else if (b.operator === "||") {
+            return max(isConsequent(a, b.left), isConsequent(a, b.right))
+        }
+    }
+    if (a instanceof BinaryExpression) {
         if (a.operator === "&&") {
             let left = isConsequent(a.left, b);
             if (left !== null) {
@@ -202,22 +236,6 @@ export function isConsequent(a: Expression, b: Expression): Maybe {
         }
         if (a.operator === "||") {
             return same(isConsequent(a.left, b), isConsequent(a.right, b))
-        }
-    }
-
-    if (b instanceof BinaryExpression) {
-        if (isTransitiveOperator(b.operator)) {
-            const graphs = getComparisonGraphMap(a);
-            const graphNode = graphs.get(b.left.toString());
-            if (graphNode) {
-                return graphNode.isConsequent(b.operator, b.right);
-            }
-        }
-        else if (b.operator === "&&") {
-            return min(isConsequent(a, b.left), isConsequent(a, b.right));
-        }
-        else if (b.operator === "||") {
-            return max(isConsequent(a, b.left), isConsequent(a, b.right))
         }
     }
     return null
